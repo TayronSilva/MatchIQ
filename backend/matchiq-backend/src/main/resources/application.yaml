@@ -1,3 +1,2 @@
-spring:
-  application:
-    name: matchiq-backend
+profiles:
+    active: dev
