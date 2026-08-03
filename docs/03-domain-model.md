@@ -51,3 +51,27 @@ A análise detalha o resultado da comparação, apontando os principais pontos f
 Representa as orientações de evolução profissional geradas para o usuário.
 
 A recomendação transforma as lacunas identificadas na análise em ações práticas, como sugestões de melhorias no currículo e planos de estudo personalizados, para que o usuário saiba exatamente onde e como evoluir.
+
+## Relação entre as entidades
+
+```
+Usuário
+   │
+   ▼
+Currículo
+   │
+   ▼
+Skill
+   │
+   ├──────────────┐
+   ▼              ▼
+Vaga         Match
+                  │
+                  ▼
+             Análise
+                  │
+                  ▼
+            Recomendação
+```
+
+Este é um mapa mental simples do fluxo principal do MatchIQ: o usuário envia seu currículo, o sistema identifica as skills presentes nele, compara essas skills com as exigidas pela vaga e gera um match. A partir do match, o sistema produz a análise e, em seguida, as recomendações de evolução profissional. Cada entidade se conecta à próxima nesse fluxo.
