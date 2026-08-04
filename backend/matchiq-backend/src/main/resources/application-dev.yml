@@ -2,6 +2,10 @@ spring:
   application:
     name: matchiq-backend
 
+  docker:
+    compose:
+      file: src/main/java/com/matchiq/docker/docker-compose.yml
+
   datasource:
     url: jdbc:postgresql://localhost:5432/matchiq_dev
     username: matchiq_admin
