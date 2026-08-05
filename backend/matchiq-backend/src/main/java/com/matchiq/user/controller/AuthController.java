@@ -1,11 +1,11 @@
 package com.matchiq.user.controller;
 
-import com.matchiq.config.JwtService;
 import com.matchiq.user.dto.LoginRequest;
+import com.matchiq.user.dto.LoginResponse;
 import com.matchiq.user.dto.UserResponse;
+import com.matchiq.user.service.AuthService;
 import com.matchiq.user.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,37 +14,22 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @RestController
 @RequestMapping("/api/auth")
+@RequiredArgsConstructor
 public class AuthController {
 
-    @Autowired
-    private UserService service;
-
-    @Autowired
-    private JwtService jwtService;
+    private final AuthService authService;
+    private final UserService userService;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
-        boolean isValid = service.verifyLogin(loginRequest.getEmail(), loginRequest.getPassword());
-
-        if (isValid) {
-            String token = jwtService.generateToken(loginRequest.getEmail());
-            Map<String, String> response = new HashMap<>();
-            response.put("token", token);
-
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Email ou senha incorreto");
-        }
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
+        return ResponseEntity.ok(authService.login(loginRequest.getEmail(), loginRequest.getPassword()));
     }
 
     @GetMapping("/me")
     public ResponseEntity<UserResponse> me(Authentication authentication) {
         String email = authentication.getName();
-        return ResponseEntity.ok(service.findByEmail(email));
+        return ResponseEntity.ok(userService.findByEmail(email));
     }
 }

@@ -66,10 +66,4 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
         repository.delete(user);
     }
-
-    public boolean verifyLogin(String email, String rawPassword) {
-        return repository.findByEmail(email)
-                .map(user -> passwordEncoder.matches(rawPassword, user.getPassword()))
-                .orElse(false);
-    }
- }
+}
