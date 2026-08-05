@@ -5,6 +5,12 @@ spring:
   application:
     name: matchiq-backend
 
+api:
+  security:
+    token:
+      secret: ${JWT_SECRET}
+      expiration: 86400000
+
 logging:
   level:
     root: WARN

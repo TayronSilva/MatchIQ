@@ -33,6 +33,12 @@ spring:
   flyway:
     enabled: false
 
+api:
+  security:
+    token:
+      secret: test-secret-key-matchiq-2026-very-long-256bit-secret-key
+      expiration: 86400000
+
 logging:
   level:
     root: WARN

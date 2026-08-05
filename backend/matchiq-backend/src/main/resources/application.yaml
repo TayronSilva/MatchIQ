@@ -1,6 +1,10 @@
 spring:
   application:
     name: matchiq-backend
-
   profiles:
     active: dev
+
+api:
+  security:
+    token:
+      secret: ${JWT_SECRET:ndKEIcNdNYmnTvreZlf2RREo5v69tj2Yh3AeMTqIkys=}

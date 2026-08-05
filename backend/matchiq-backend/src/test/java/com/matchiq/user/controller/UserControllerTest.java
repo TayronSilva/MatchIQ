@@ -3,6 +3,8 @@ package com.matchiq.user.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.matchiq.common.exception.EmailAlreadyExistsException;
 import com.matchiq.common.exception.ResourceNotFoundException;
+import com.matchiq.config.JwtAuthenticationFilter;
+import com.matchiq.config.SecurityConfig;
 import com.matchiq.user.dto.CreateUserRequest;
 import com.matchiq.user.dto.UpdateUserRequest;
 import com.matchiq.user.dto.UserResponse;
@@ -10,6 +12,8 @@ import com.matchiq.user.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.ComponentScan.Filter;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -22,7 +26,8 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(UserController.class)
+@WebMvcTest(value = UserController.class,
+        excludeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, classes = {SecurityConfig.class, JwtAuthenticationFilter.class}))
 class UserControllerTest {
 
     @Autowired
