@@ -27,7 +27,6 @@ public class ErrorResponse {
         this.errors = errors;
     }
 
-    // Adicionar erros individuais
     public void addError(Object error) { this.errors.add(error); }
 
     public boolean isSuccess() { return success; }

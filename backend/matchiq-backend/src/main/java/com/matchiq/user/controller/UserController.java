@@ -1,6 +1,7 @@
 package com.matchiq.user.controller;
 
 import com.matchiq.user.dto.CreateUserRequest;
+import com.matchiq.user.dto.UpdateUserRequest;
 import com.matchiq.user.dto.UserResponse;
 import com.matchiq.user.service.UserService;
 import jakarta.validation.Valid;
@@ -19,5 +20,21 @@ public class UserController {
     @ResponseStatus(HttpStatus.CREATED)
     public UserResponse create(@Valid @RequestBody CreateUserRequest request) {
         return userService.create(request);
+    }
+
+    @GetMapping("/{id}")
+    public UserResponse findById(@PathVariable Long id) {
+        return userService.findById(id);
+    }
+
+    @PutMapping("/{id}")
+    public UserResponse update(@PathVariable Long id, @Valid @RequestBody UpdateUserRequest request) {
+        return userService.update(id, request);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
+        userService.delete(id);
     }
 }

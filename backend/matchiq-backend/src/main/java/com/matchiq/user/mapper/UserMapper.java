@@ -2,13 +2,15 @@ package com.matchiq.user.mapper;
 
 import com.matchiq.user.domain.User;
 import com.matchiq.user.dto.CreateUserRequest;
+import com.matchiq.user.dto.UpdateUserRequest;
 import com.matchiq.user.dto.UserResponse;
 import org.springframework.stereotype.Component;
 
 @Component
 public class UserMapper {
+
     public User toEntity(CreateUserRequest request) {
-        if(request == null) {
+        if (request == null) {
             return null;
         }
 
@@ -23,8 +25,15 @@ public class UserMapper {
         return user;
     }
 
-    public UserResponse toResponse(User user){
-        if(user == null) {
+    public void updateEntity(User user, UpdateUserRequest request) {
+        user.setName(request.getName());
+        user.setLanguage(request.getLanguage());
+        user.setTheme(request.getTheme());
+        user.setNotificationEnabled(request.isNotificationEnabled());
+    }
+
+    public UserResponse toResponse(User user) {
+        if (user == null) {
             return null;
         }
 
@@ -40,5 +49,4 @@ public class UserMapper {
 
         return response;
     }
-
 }
