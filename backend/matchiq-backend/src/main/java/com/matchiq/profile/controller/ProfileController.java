@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/v1/profile")
@@ -38,6 +39,13 @@ public class ProfileController {
                                   Authentication authentication) {
         Long userId = currentUserId(authentication);
         return profileService.update(userId, request);
+    }
+
+    @PostMapping("/avatar")
+    public ProfileResponse uploadAvatar(@RequestParam("file") MultipartFile file,
+                                        Authentication authentication) {
+        Long userId = currentUserId(authentication);
+        return profileService.updateAvatar(userId, file);
     }
 
     @GetMapping("/{id}")

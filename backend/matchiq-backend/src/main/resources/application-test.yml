@@ -39,6 +39,11 @@ api:
       secret: test-secret-key-matchiq-2026-very-long-256bit-secret-key
       expiration: 86400000
 
+supabase:
+  url: https://test.supabase.co
+  service-key: test-service-key
+  bucket: avatars
+
 logging:
   level:
     root: WARN

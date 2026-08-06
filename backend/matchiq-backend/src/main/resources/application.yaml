@@ -8,3 +8,8 @@ api:
   security:
     token:
       secret: ${JWT_SECRET:ndKEIcNdNYmnTvreZlf2RREo5v69tj2Yh3AeMTqIkys=}
+
+supabase:
+  url: ${SUPABASE_URL:}
+  service-key: ${SUPABASE_SERVICE_KEY:}
+  bucket: ${SUPABASE_BUCKET:avatars}

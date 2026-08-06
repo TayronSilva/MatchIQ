@@ -11,6 +11,7 @@ import com.matchiq.profile.dto.CreateProfileRequest;
 import com.matchiq.profile.dto.ProfileResponse;
 import com.matchiq.profile.dto.UpdateProfileRequest;
 import com.matchiq.profile.service.ProfileService;
+import com.matchiq.profile.service.SupabaseStorageService;
 import com.matchiq.user.dto.UserResponse;
 import com.matchiq.user.service.UserService;
 import org.junit.jupiter.api.Test;
@@ -22,6 +23,7 @@ import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -68,6 +70,9 @@ class ProfileControllerTest {
 
     @MockitoBean
     private UserService userService;
+
+    @MockitoBean
+    private SupabaseStorageService supabaseStorageService;
 
     private UserResponse sampleUser() {
         UserResponse user = new UserResponse();
@@ -196,5 +201,26 @@ class ProfileControllerTest {
 
         mockMvc.perform(get("/api/v1/profile/{id}", 99L))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void uploadAvatar_shouldReturnProfileWithNewAvatarUrl() throws Exception {
+        when(userService.findByEmail("joao@email.com")).thenReturn(sampleUser());
+
+        ProfileResponse updated = sampleProfile();
+        updated.setAvatarUrl("https://example.supabase.co/storage/v1/object/public/avatars/avatar.jpg");
+        when(profileService.updateAvatar(eq(1L), any(MockMultipartFile.class))).thenReturn(updated);
+
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "avatar.jpg",
+                MediaType.IMAGE_JPEG_VALUE,
+                "fake-image-bytes".getBytes());
+
+        mockMvc.perform(multipart("/api/v1/profile/avatar")
+                        .file(file)
+                        .with(user("joao@email.com")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.avatarUrl").value("https://example.supabase.co/storage/v1/object/public/avatars/avatar.jpg"));
     }
 }

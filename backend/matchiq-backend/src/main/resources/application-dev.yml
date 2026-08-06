@@ -42,6 +42,11 @@ api:
       secret: ${JWT_SECRET:dev-secret-key-matchiq-2026-very-long-256bit-secret-key}
       expiration: 86400000
 
+supabase:
+  url: ${SUPABASE_URL:}
+  service-key: ${SUPABASE_SERVICE_KEY:}
+  bucket: ${SUPABASE_BUCKET:avatars}
+
 logging:
   level:
     root: INFO
