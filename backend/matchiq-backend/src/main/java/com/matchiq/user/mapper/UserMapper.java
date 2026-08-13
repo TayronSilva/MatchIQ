@@ -20,7 +20,7 @@ public class UserMapper {
         user.setPassword(request.getPassword());
         user.setLanguage(request.getLanguage());
         user.setTheme(request.getTheme());
-        user.setNotificationEnabled(request.isNotificationEnabled());
+        user.setNotificationEnabled(Boolean.TRUE.equals(request.getNotificationEnabled()));
 
         return user;
     }
@@ -29,7 +29,7 @@ public class UserMapper {
         user.setName(request.getName());
         user.setLanguage(request.getLanguage());
         user.setTheme(request.getTheme());
-        user.setNotificationEnabled(request.isNotificationEnabled());
+        user.setNotificationEnabled(Boolean.TRUE.equals(request.getNotificationEnabled()));
     }
 
     public UserResponse toResponse(User user) {

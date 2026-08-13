@@ -32,5 +32,5 @@ public class CreateUserRequest {
     @Size(max = 20, message = "theme must have at most 20 characters")
     private String theme;
 
-    private boolean notificationEnabled;
+    private Boolean notificationEnabled;
 }
