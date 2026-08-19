@@ -10,6 +10,9 @@ api:
     token:
       secret: ${JWT_SECRET}
       expiration: 86400000
+  huggingface:
+    api-key: ${HUGGINGFACE_API_KEY:}
+    model: ${HUGGINGFACE_MODEL:deepseek-ai/DeepSeek-V4-Flash-0731:baseten}
 
 logging:
   level:
