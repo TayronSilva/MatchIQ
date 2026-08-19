@@ -12,3 +12,6 @@ api:
   security:
     token:
       secret: ${JWT_SECRET:ndKEIcNdNYmnTvreZlf2RREo5v69tj2Yh3AeMTqIkys=}
+  huggingface:
+    api-key: ${HUGGINGFACE_API_KEY:}
+    model: ${HUGGINGFACE_MODEL:mistralai/Mistral-7B-Instruct-v0.3}
