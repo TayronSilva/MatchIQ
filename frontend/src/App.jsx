@@ -117,15 +117,23 @@ export default function App() {
     setError('')
     try {
       let data
-      if (url) {
-        data = await api('/v1/vacancies/from-url?url=' + encodeURIComponent(url), {
-          method: 'POST'
-        })
-        if (data.needsMoreInfo) {
-          setVacancyNeedsInfo(true)
-          showSuccess('Vaga lida do link! A descrição veio curta — cole o texto completo abaixo pra ter um match real.')
-        } else {
+      if (url && !title && !description) {
+        try {
+          data = await api('/v1/vacancies/from-url?url=' + encodeURIComponent(url), {
+            method: 'POST'
+          })
+          if (data.needsMoreInfo) {
+            setVacancyNeedsInfo(true)
+            showSuccess('Vaga lida do link! A descrição veio curta — cole o texto completo abaixo pra ter um match real.')
+          } else {
+            setVacancyNeedsInfo(false)
+          }
+        } catch (err) {
+          // scraper falhou (ex: Indeed bloqueia) — cai pro modo manual
           setVacancyNeedsInfo(false)
+          showError('Não consegui ler o link (' + err.message + '). Preencha o título e a descrição manualmente abaixo.')
+          setLoading(false)
+          return
         }
       } else {
         data = await api('/v1/vacancies', {
