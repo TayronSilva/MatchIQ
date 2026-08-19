@@ -28,13 +28,13 @@ public class Analysis {
     @Column(name = "match_id", nullable = false, unique = true)
     private Long matchId;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "strengths", columnDefinition = "TEXT")
     private String strengthsJson;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "gaps", columnDefinition = "TEXT")
     private String gapsJson;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "observations", columnDefinition = "TEXT")
     private String observations;
 
     @CreationTimestamp

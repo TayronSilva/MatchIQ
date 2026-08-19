@@ -28,7 +28,7 @@ public class Recommendation {
     @Column(name = "match_id", nullable = false, unique = true)
     private Long matchId;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "suggestions", columnDefinition = "TEXT")
     private String suggestionsJson;
 
     @Column(name = "study_plan", columnDefinition = "TEXT")
