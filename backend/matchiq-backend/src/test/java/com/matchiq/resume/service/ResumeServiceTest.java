@@ -7,6 +7,11 @@ import com.matchiq.resume.dto.ResumeResponse;
 import com.matchiq.resume.dto.UpdateResumeRequest;
 import com.matchiq.resume.mapper.ResumeMapper;
 import com.matchiq.resume.repository.ResumeRepository;
+import com.matchiq.skill.domain.ResumeSkill;
+import com.matchiq.skill.domain.Skill;
+import com.matchiq.skill.repository.ResumeSkillRepository;
+import com.matchiq.skill.repository.SkillRepository;
+import com.matchiq.skill.service.SkillExtractorService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,6 +40,15 @@ class ResumeServiceTest {
 
     @Mock
     private ResumeTextExtractor textExtractor;
+
+    @Mock
+    private SkillExtractorService skillExtractor;
+
+    @Mock
+    private SkillRepository skillRepository;
+
+    @Mock
+    private ResumeSkillRepository resumeSkillRepository;
 
     @InjectMocks
     private ResumeService service;
@@ -75,6 +89,22 @@ class ResumeServiceTest {
                 "file", "curriculo.pdf", "application/pdf", new byte[]{1, 2, 3});
 
         when(textExtractor.extract(file)).thenReturn("Java Spring Boot PostgreSQL");
+        when(skillExtractor.extract("Java Spring Boot PostgreSQL")).thenReturn(List.of("Java", "Spring Boot"));
+
+        Skill javaSkill = new Skill();
+        javaSkill.setId(10L);
+        javaSkill.setName("Java");
+
+        when(skillRepository.findByNameIgnoreCase("Java")).thenReturn(Optional.of(javaSkill));
+        when(skillRepository.findByNameIgnoreCase("Spring Boot")).thenReturn(Optional.empty());
+        when(skillRepository.save(any(Skill.class))).thenAnswer(inv -> {
+            Skill s = inv.getArgument(0);
+            s.setId(11L);
+            return s;
+        });
+        when(resumeSkillRepository.existsByResumeIdAndSkillId(1L, 10L)).thenReturn(false);
+        when(resumeSkillRepository.existsByResumeIdAndSkillId(1L, 11L)).thenReturn(false);
+
         when(repository.countByUserId(1L)).thenReturn(0L);
         when(repository.save(any(Resume.class))).thenReturn(resume);
         when(mapper.toResponse(resume)).thenReturn(response);
@@ -90,6 +120,39 @@ class ResumeServiceTest {
         assertEquals(ProcessingStatus.COMPLETED, result.getProcessingStatus());
         verify(textExtractor).extract(file);
         verify(repository).save(any(Resume.class));
+        verify(resumeSkillRepository, times(2)).save(any(ResumeSkill.class));
+    }
+
+    @Test
+    void upload_shouldLinkExtractedSkillsAutomatically() throws IOException {
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "curriculo.pdf", "application/pdf", new byte[]{1, 2, 3});
+
+        when(textExtractor.extract(file)).thenReturn("Experiência com Java e Spring Boot");
+        when(skillExtractor.extract("Experiência com Java e Spring Boot")).thenReturn(List.of("Java", "Spring Boot"));
+
+        Skill javaSkill = new Skill();
+        javaSkill.setId(10L);
+        javaSkill.setName("Java");
+
+        Skill springSkill = new Skill();
+        springSkill.setId(11L);
+        springSkill.setName("Spring Boot");
+
+        when(repository.countByUserId(1L)).thenReturn(0L);
+        when(repository.save(any(Resume.class))).thenReturn(resume);
+        when(mapper.toResponse(resume)).thenReturn(response);
+
+        when(skillRepository.findByNameIgnoreCase("Java")).thenReturn(Optional.of(javaSkill));
+        when(skillRepository.findByNameIgnoreCase("Spring Boot")).thenReturn(Optional.empty());
+        when(skillRepository.save(any(Skill.class))).thenReturn(springSkill);
+
+        when(resumeSkillRepository.existsByResumeIdAndSkillId(1L, 10L)).thenReturn(false);
+        when(resumeSkillRepository.existsByResumeIdAndSkillId(1L, 11L)).thenReturn(false);
+
+        service.upload(1L, file, "pt-BR");
+
+        verify(resumeSkillRepository, times(2)).save(any(ResumeSkill.class));
     }
 
     @Test
@@ -130,6 +193,7 @@ class ResumeServiceTest {
                 "file", "curriculo2.pdf", "application/pdf", new byte[]{1, 2, 3});
 
         when(textExtractor.extract(file)).thenReturn("texto");
+        when(skillExtractor.extract("texto")).thenReturn(List.of());
         when(repository.countByUserId(1L)).thenReturn(2L);
 
         Resume newResume = new Resume();

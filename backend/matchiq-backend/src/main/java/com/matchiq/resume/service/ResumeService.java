@@ -7,6 +7,11 @@ import com.matchiq.resume.dto.ResumeResponse;
 import com.matchiq.resume.dto.UpdateResumeRequest;
 import com.matchiq.resume.mapper.ResumeMapper;
 import com.matchiq.resume.repository.ResumeRepository;
+import com.matchiq.skill.domain.ResumeSkill;
+import com.matchiq.skill.domain.Skill;
+import com.matchiq.skill.repository.ResumeSkillRepository;
+import com.matchiq.skill.repository.SkillRepository;
+import com.matchiq.skill.service.SkillExtractorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +30,9 @@ public class ResumeService {
     private final ResumeRepository repository;
     private final ResumeMapper mapper;
     private final ResumeTextExtractor textExtractor;
+    private final SkillExtractorService skillExtractor;
+    private final SkillRepository skillRepository;
+    private final ResumeSkillRepository resumeSkillRepository;
 
     @Transactional
     public ResumeResponse upload(Long userId, MultipartFile file, String language) {
@@ -48,8 +56,9 @@ public class ResumeService {
         resume.setLanguage(language);
         resume.setVersion((int) version);
 
+        String extractedText = null;
         try {
-            String extractedText = textExtractor.extract(file);
+            extractedText = textExtractor.extract(file);
             resume.setExtractedText(extractedText);
             resume.setProcessingStatus(ProcessingStatus.COMPLETED);
         } catch (IOException | RuntimeException e) {
@@ -57,7 +66,32 @@ public class ResumeService {
         }
 
         Resume saved = repository.save(resume);
+
+        if (extractedText != null && !extractedText.isBlank()) {
+            linkExtractedSkills(saved.getId(), skillExtractor.extract(extractedText));
+        }
+
         return mapper.toResponse(saved);
+    }
+
+    private void linkExtractedSkills(Long resumeId, List<String> skillNames) {
+        for (String name : skillNames) {
+            Skill skill = skillRepository.findByNameIgnoreCase(name)
+                    .orElseGet(() -> skillRepository.save(createSkill(name)));
+
+            if (!resumeSkillRepository.existsByResumeIdAndSkillId(resumeId, skill.getId())) {
+                ResumeSkill resumeSkill = new ResumeSkill();
+                resumeSkill.setResumeId(resumeId);
+                resumeSkill.setSkillId(skill.getId());
+                resumeSkillRepository.save(resumeSkill);
+            }
+        }
+    }
+
+    private Skill createSkill(String name) {
+        Skill skill = new Skill();
+        skill.setName(name);
+        return skill;
     }
 
     @Transactional(readOnly = true)
