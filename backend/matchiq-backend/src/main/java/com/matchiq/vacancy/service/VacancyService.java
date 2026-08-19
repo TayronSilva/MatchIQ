@@ -25,6 +25,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class VacancyService {
 
+    private static final int MIN_DESCRIPTION_LENGTH = 300;
+
     private final VacancyRepository repository;
     private final VacancySkillRepository vacancySkillRepository;
     private final SkillRepository skillRepository;
@@ -53,7 +55,9 @@ public class VacancyService {
 
         Vacancy saved = repository.save(vacancy);
         linkExtractedSkills(saved.getId(), skillExtractor.extract(saved.getDescription()));
-        return toResponseWithSkills(saved);
+        VacancyResponse response = toResponseWithSkills(saved);
+        response.setNeedsMoreInfo(saved.getDescription() == null || saved.getDescription().length() < MIN_DESCRIPTION_LENGTH);
+        return response;
     }
 
     @Transactional(readOnly = true)

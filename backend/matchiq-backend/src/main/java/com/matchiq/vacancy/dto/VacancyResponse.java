@@ -36,6 +36,8 @@ public class VacancyResponse {
 
     private VacancySource source;
 
+    private boolean needsMoreInfo;
+
     private List<VacancySkillResponse> skills;
 
     private LocalDateTime createdAt;

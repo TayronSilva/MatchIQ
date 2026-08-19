@@ -125,6 +125,7 @@ class VacancyServiceTest {
         when(repository.save(any(Vacancy.class))).thenAnswer(inv -> {
             Vacancy v = inv.getArgument(0);
             v.setId(1L);
+            v.setDescription("Precisa de Java e Docker");
             return v;
         });
         when(skillExtractor.extract("Precisa de Java e Docker")).thenReturn(List.of("Java", "Docker"));
@@ -143,7 +144,30 @@ class VacancyServiceTest {
         VacancyResponse result = service.createFromUrl(1L, "https://exemplo.com/vaga");
 
         assertNotNull(result);
+        assertTrue(result.isNeedsMoreInfo());
         verify(repository).save(any(Vacancy.class));
+    }
+
+    @Test
+    void createFromUrl_shouldNotNeedMoreInfoWhenDescriptionIsLong() {
+        String longDescription = "Descrição completa da vaga. ".repeat(30); // ~660 chars
+        when(scraper.scrape("https://exemplo.com/vaga-completa"))
+                .thenReturn(new ScrapedVacancy("Vaga Java", longDescription));
+
+        when(repository.save(any(Vacancy.class))).thenAnswer(inv -> {
+            Vacancy v = inv.getArgument(0);
+            v.setId(1L);
+            v.setDescription(longDescription);
+            return v;
+        });
+        when(skillExtractor.extract(longDescription)).thenReturn(List.of());
+        when(vacancySkillRepository.findByVacancyId(1L)).thenReturn(List.of());
+        when(mapper.toResponse(any(Vacancy.class), anyList())).thenReturn(response);
+
+        VacancyResponse result = service.createFromUrl(1L, "https://exemplo.com/vaga-completa");
+
+        assertNotNull(result);
+        assertFalse(result.isNeedsMoreInfo());
     }
 
     @Test
