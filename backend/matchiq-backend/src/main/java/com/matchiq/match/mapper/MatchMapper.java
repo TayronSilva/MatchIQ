@@ -38,6 +38,10 @@ public class MatchMapper {
         }
     }
 
+    public List<String> readListForMatch(String json) {
+        return readList(json);
+    }
+
     private List<String> readList(String json) {
         if (json == null || json.isBlank()) {
             return List.of();
