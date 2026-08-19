@@ -49,6 +49,7 @@ public class VacancyMapper {
         response.setSalaryRange(vacancy.getSalaryRange());
         response.setUrl(vacancy.getUrl());
         response.setSource(vacancy.getSource());
+        response.setFavorite(vacancy.isFavorite());
         response.setSkills(skills);
         response.setCreatedAt(vacancy.getCreatedAt());
         response.setUpdatedAt(vacancy.getUpdatedAt());

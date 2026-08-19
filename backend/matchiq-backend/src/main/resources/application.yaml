@@ -15,3 +15,7 @@ api:
   huggingface:
     api-key: ${HUGGINGFACE_API_KEY:}
     model: ${HUGGINGFACE_MODEL:deepseek-ai/DeepSeek-V4-Flash-0731:baseten}
+  supabase:
+    url: ${SUPABASE_URL:}
+    service-key: ${SUPABASE_SERVICE_KEY:}
+    bucket: ${SUPABASE_BUCKET:avatars}

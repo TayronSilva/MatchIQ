@@ -90,6 +90,15 @@ public class VacancyService {
     }
 
     @Transactional
+    public VacancyResponse favorite(Long id, Long userId, boolean favorite) {
+        Vacancy vacancy = repository.findByIdAndUserId(id, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Vacancy not found with id: " + id));
+        vacancy.setFavorite(favorite);
+        Vacancy updated = repository.save(vacancy);
+        return toResponseWithSkills(updated);
+    }
+
+    @Transactional
     public void delete(Long id, Long userId) {
         Vacancy vacancy = repository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Vacancy not found with id: " + id));

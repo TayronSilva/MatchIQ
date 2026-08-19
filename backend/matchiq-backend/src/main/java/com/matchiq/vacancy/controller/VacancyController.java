@@ -60,6 +60,14 @@ public class VacancyController {
         return vacancyService.update(id, userId, request);
     }
 
+    @PutMapping("/{id}/favorite")
+    public VacancyResponse favorite(Authentication authentication,
+                                    @PathVariable Long id,
+                                    @RequestParam boolean favorite) {
+        Long userId = currentUserId(authentication);
+        return vacancyService.favorite(id, userId, favorite);
+    }
+
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(Authentication authentication, @PathVariable Long id) {

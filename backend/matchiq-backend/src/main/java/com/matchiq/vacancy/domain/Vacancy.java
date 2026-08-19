@@ -49,6 +49,9 @@ public class Vacancy {
     @Column(nullable = false)
     private VacancySource source = VacancySource.MANUAL;
 
+    @Column(nullable = false)
+    private boolean favorite;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

@@ -1,0 +1,102 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #f0f4f8;
+  color: #1a202c;
+  line-height: 1.5;
+}
+
+.auth-page, .page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 24px 16px 60px;
+}
+
+h1 { text-align: center; font-size: 2rem; margin-bottom: 4px; }
+.subtitle { text-align: center; color: #4a5568; margin-bottom: 24px; }
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+header h1 { font-size: 1.5rem; }
+
+.card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.card h2 { font-size: 1.1rem; margin-bottom: 12px; }
+.hint { color: #718096; font-size: 0.9rem; margin-bottom: 12px; }
+
+input, textarea, button {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 10px;
+  border: 1px solid #cbd5e0;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+textarea { resize: vertical; }
+
+button {
+  background: #3182ce;
+  color: #fff;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+button:hover { background: #2b6cb0; }
+button:disabled { background: #a0aec0; cursor: not-allowed; }
+
+button.link {
+  width: auto;
+  background: none;
+  color: #3182ce;
+  padding: 4px 8px;
+  margin: 0;
+}
+
+button.big {
+  padding: 16px;
+  font-size: 1.2rem;
+  margin-top: 8px;
+}
+
+.banner {
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 12px;
+  font-size: 0.95rem;
+}
+.banner.error { background: #fed7d7; color: #9b2c2c; }
+.banner.success { background: #c6f6d5; color: #22543d; }
+
+.score-big {
+  font-size: 4rem;
+  font-weight: 800;
+  text-align: center;
+  color: #3182ce;
+}
+.score-label { text-align: center; color: #4a5568; margin-bottom: 24px; }
+
+ul { padding-left: 20px; }
+li { margin-bottom: 4px; }
+
+.preserve { white-space: pre-wrap; }
+.tag {
+  display: inline-block;
+  background: #fefcbf;
+  color: #744210;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  margin-top: 8px;
+}

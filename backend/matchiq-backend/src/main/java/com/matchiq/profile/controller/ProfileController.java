@@ -9,8 +9,10 @@ import com.matchiq.user.repository.UserRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/v1/profile")
@@ -39,6 +41,13 @@ public class ProfileController {
                                   @Valid @RequestBody UpdateProfileRequest request) {
         Long userId = currentUserId(authentication);
         return profileService.update(userId, request);
+    }
+
+    @PostMapping(value = "/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ProfileResponse uploadAvatar(Authentication authentication,
+                                        @RequestParam("file") MultipartFile file) {
+        Long userId = currentUserId(authentication);
+        return profileService.uploadAvatar(userId, file);
     }
 
     private Long currentUserId(Authentication authentication) {
