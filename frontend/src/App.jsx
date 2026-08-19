@@ -106,6 +106,8 @@ export default function App() {
   }
 
   // ---------- VAGA ----------
+  const [vacancyNeedsInfo, setVacancyNeedsInfo] = useState(false)
+
   async function handleVacancy(e) {
     e.preventDefault()
     const url = e.target.url.value
@@ -120,16 +122,40 @@ export default function App() {
           method: 'POST'
         })
         if (data.needsMoreInfo) {
-          showSuccess('Vaga lida do link! A descrição veio curta, complete abaixo se quiser.')
+          setVacancyNeedsInfo(true)
+          showSuccess('Vaga lida do link! A descrição veio curta — cole o texto completo abaixo pra ter um match real.')
+        } else {
+          setVacancyNeedsInfo(false)
         }
       } else {
         data = await api('/v1/vacancies', {
           method: 'POST',
           body: JSON.stringify({ title, description })
         })
+        setVacancyNeedsInfo(false)
       }
       setVacancyId(data.id)
       showSuccess('Vaga salva! Clique em "Ver meu match".')
+    } catch (err) { showError(err) } finally { setLoading(false) }
+  }
+
+  async function handleUpdateVacancy(e) {
+    e.preventDefault()
+    const description = e.target.fullDescription.value
+    if (!description || description.length < 50) {
+      showError('Cole a descrição completa da vaga (mínimo 50 caracteres).')
+      return
+    }
+    setLoading(true)
+    setError('')
+    try {
+      const data = await api(`/v1/vacancies/${vacancyId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ title: 'Vaga', description })
+      })
+      setVacancyNeedsInfo(false)
+      setVacancyId(data.id)
+      showSuccess('Vaga atualizada! Skills extraídas. Agora pode ver o match.')
     } catch (err) { showError(err) } finally { setLoading(false) }
   }
 
@@ -244,10 +270,21 @@ export default function App() {
           <textarea name="description" placeholder="Descrição da vaga (se for manual)" rows={4} />
           <button type="submit" disabled={loading}>{loading ? 'Salvando...' : 'Salvar vaga'}</button>
         </form>
-        {vacancyId && <div className="banner success">✅ Vaga salva</div>}
+        {vacancyId && !vacancyNeedsInfo && <div className="banner success">✅ Vaga salva</div>}
+
+        {vacancyNeedsInfo && (
+          <div className="card warn">
+            <h2>⚠️ A descrição veio curta do link</h2>
+            <p className="hint">O site da vaga não expõe o texto completo. Cole a descrição inteira pra extrair as skills certas:</p>
+            <form onSubmit={handleUpdateVacancy}>
+              <textarea name="fullDescription" placeholder="Cole aqui a descrição completa da vaga..." rows={6} required />
+              <button type="submit" disabled={loading}>{loading ? 'Atualizando...' : 'Atualizar vaga'}</button>
+            </form>
+          </div>
+        )}
       </div>
 
-      <button className="big" onClick={handleMatch} disabled={loading || !resumeId || !vacancyId}>
+      <button className="big" onClick={handleMatch} disabled={loading || !resumeId || !vacancyId || vacancyNeedsInfo}>
         {loading ? 'Calculando...' : '💘 Ver meu match'}
       </button>
 

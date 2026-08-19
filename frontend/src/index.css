@@ -35,6 +35,11 @@ header h1 { font-size: 1.5rem; }
 .card h2 { font-size: 1.1rem; margin-bottom: 12px; }
 .hint { color: #718096; font-size: 0.9rem; margin-bottom: 12px; }
 
+.card.warn {
+  background: #fffbeb;
+  border: 1px solid #f6ad55;
+}
+
 input, textarea, button {
   width: 100%;
   padding: 12px;
