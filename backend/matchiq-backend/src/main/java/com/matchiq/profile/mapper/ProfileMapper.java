@@ -19,6 +19,11 @@ public class ProfileMapper {
         profile.setGithubUrl(request.getGithubUrl());
         profile.setPortfolioUrl(request.getPortfolioUrl());
         profile.setAvatarUrl(request.getAvatarUrl());
+        profile.setProfessionalLevel(request.getProfessionalLevel());
+        profile.setYearsOfExperience(request.getYearsOfExperience());
+        profile.setWorkModality(request.getWorkModality());
+        profile.setDesiredLocation(request.getDesiredLocation());
+        profile.setSalaryExpectation(request.getSalaryExpectation());
         return profile;
     }
 
@@ -30,6 +35,11 @@ public class ProfileMapper {
         profile.setGithubUrl(request.getGithubUrl());
         profile.setPortfolioUrl(request.getPortfolioUrl());
         profile.setAvatarUrl(request.getAvatarUrl());
+        profile.setProfessionalLevel(request.getProfessionalLevel());
+        profile.setYearsOfExperience(request.getYearsOfExperience());
+        profile.setWorkModality(request.getWorkModality());
+        profile.setDesiredLocation(request.getDesiredLocation());
+        profile.setSalaryExpectation(request.getSalaryExpectation());
     }
 
     public ProfileResponse toResponse(Profile profile) {
@@ -43,6 +53,11 @@ public class ProfileMapper {
         response.setGithubUrl(profile.getGithubUrl());
         response.setPortfolioUrl(profile.getPortfolioUrl());
         response.setAvatarUrl(profile.getAvatarUrl());
+        response.setProfessionalLevel(profile.getProfessionalLevel());
+        response.setYearsOfExperience(profile.getYearsOfExperience());
+        response.setWorkModality(profile.getWorkModality());
+        response.setDesiredLocation(profile.getDesiredLocation());
+        response.setSalaryExpectation(profile.getSalaryExpectation());
         response.setCreatedAt(profile.getCreatedAt());
         response.setUpdatedAt(profile.getUpdatedAt());
         return response;

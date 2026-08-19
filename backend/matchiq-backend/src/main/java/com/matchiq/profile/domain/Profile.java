@@ -8,6 +8,7 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -42,6 +43,23 @@ public class Profile {
 
     @Column(name = "avatar_url")
     private String avatarUrl;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "professional_level")
+    private ProfessionalLevel professionalLevel;
+
+    @Column(name = "years_of_experience")
+    private Integer yearsOfExperience;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "work_modality")
+    private WorkModality workModality;
+
+    @Column(name = "desired_location")
+    private String desiredLocation;
+
+    @Column(name = "salary_expectation")
+    private BigDecimal salaryExpectation;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

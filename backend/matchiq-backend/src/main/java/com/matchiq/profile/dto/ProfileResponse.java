@@ -1,10 +1,13 @@
 package com.matchiq.profile.dto;
 
+import com.matchiq.profile.domain.ProfessionalLevel;
+import com.matchiq.profile.domain.WorkModality;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Getter
@@ -29,6 +32,16 @@ public class ProfileResponse {
     private String portfolioUrl;
 
     private String avatarUrl;
+
+    private ProfessionalLevel professionalLevel;
+
+    private Integer yearsOfExperience;
+
+    private WorkModality workModality;
+
+    private String desiredLocation;
+
+    private BigDecimal salaryExpectation;
 
     private LocalDateTime createdAt;
 

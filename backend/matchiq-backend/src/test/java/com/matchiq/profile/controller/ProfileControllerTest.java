@@ -5,6 +5,8 @@ import com.matchiq.common.exception.ProfileAlreadyExistsException;
 import com.matchiq.common.exception.ResourceNotFoundException;
 import com.matchiq.config.JwtAuthenticationFilter;
 import com.matchiq.config.SecurityConfig;
+import com.matchiq.profile.domain.ProfessionalLevel;
+import com.matchiq.profile.domain.WorkModality;
 import com.matchiq.profile.dto.CreateProfileRequest;
 import com.matchiq.profile.dto.ProfileResponse;
 import com.matchiq.profile.dto.UpdateProfileRequest;
@@ -21,6 +23,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -56,6 +59,11 @@ class ProfileControllerTest {
         response.setGithubUrl("https://github.com/joao");
         response.setPortfolioUrl("https://portfolio.joao.dev");
         response.setAvatarUrl("https://storage.supabase.co/avatar.png");
+        response.setProfessionalLevel(ProfessionalLevel.SENIOR);
+        response.setYearsOfExperience(8);
+        response.setWorkModality(WorkModality.REMOTE);
+        response.setDesiredLocation("São Paulo, Brasil");
+        response.setSalaryExpectation(new BigDecimal("15000.00"));
         response.setCreatedAt(LocalDateTime.now());
         response.setUpdatedAt(LocalDateTime.now());
         return response;
@@ -78,6 +86,11 @@ class ProfileControllerTest {
         request.setHeadline("Java Backend Developer");
         request.setBio("Desenvolvedor focado em APIs.");
         request.setLocation("Rio de Janeiro, Brasil");
+        request.setProfessionalLevel(ProfessionalLevel.SENIOR);
+        request.setYearsOfExperience(8);
+        request.setWorkModality(WorkModality.REMOTE);
+        request.setDesiredLocation("São Paulo, Brasil");
+        request.setSalaryExpectation(new BigDecimal("15000.00"));
 
         mockCurrentUser();
         when(profileService.create(eq(1L), any(CreateProfileRequest.class))).thenReturn(sampleResponse());
@@ -89,7 +102,26 @@ class ProfileControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.userId").value(1))
-                .andExpect(jsonPath("$.headline").value("Java Backend Developer"));
+                .andExpect(jsonPath("$.headline").value("Java Backend Developer"))
+                .andExpect(jsonPath("$.professionalLevel").value("SENIOR"))
+                .andExpect(jsonPath("$.workModality").value("REMOTE"));
+    }
+
+    @Test
+    void create_shouldReturn400WhenYearsOfExperienceNegative() throws Exception {
+        CreateProfileRequest request = new CreateProfileRequest();
+        request.setHeadline("Java Backend Developer");
+        request.setYearsOfExperience(-1);
+
+        mockCurrentUser();
+
+        mockMvc.perform(post("/api/v1/profile")
+                        .principal(auth())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+
+        verify(profileService, never()).create(any(), any());
     }
 
     @Test

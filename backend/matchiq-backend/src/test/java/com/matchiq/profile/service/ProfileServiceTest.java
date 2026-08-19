@@ -2,6 +2,8 @@ package com.matchiq.profile.service;
 
 import com.matchiq.common.exception.ProfileAlreadyExistsException;
 import com.matchiq.common.exception.ResourceNotFoundException;
+import com.matchiq.profile.domain.ProfessionalLevel;
+import com.matchiq.profile.domain.WorkModality;
 import com.matchiq.profile.domain.Profile;
 import com.matchiq.profile.dto.CreateProfileRequest;
 import com.matchiq.profile.dto.ProfileResponse;
@@ -15,6 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -42,11 +45,21 @@ class ProfileServiceTest {
         profile.setId(1L);
         profile.setUserId(1L);
         profile.setHeadline("Java Backend Developer");
+        profile.setProfessionalLevel(ProfessionalLevel.SENIOR);
+        profile.setYearsOfExperience(8);
+        profile.setWorkModality(WorkModality.REMOTE);
+        profile.setDesiredLocation("São Paulo, Brasil");
+        profile.setSalaryExpectation(new BigDecimal("15000.00"));
 
         response = new ProfileResponse();
         response.setId(1L);
         response.setUserId(1L);
         response.setHeadline("Java Backend Developer");
+        response.setProfessionalLevel(ProfessionalLevel.SENIOR);
+        response.setYearsOfExperience(8);
+        response.setWorkModality(WorkModality.REMOTE);
+        response.setDesiredLocation("São Paulo, Brasil");
+        response.setSalaryExpectation(new BigDecimal("15000.00"));
     }
 
     @Test
@@ -64,6 +77,11 @@ class ProfileServiceTest {
         assertNotNull(result);
         assertEquals(1L, result.getUserId());
         assertEquals("Java Backend Developer", result.getHeadline());
+        assertEquals(ProfessionalLevel.SENIOR, result.getProfessionalLevel());
+        assertEquals(8, result.getYearsOfExperience());
+        assertEquals(WorkModality.REMOTE, result.getWorkModality());
+        assertEquals("São Paulo, Brasil", result.getDesiredLocation());
+        assertEquals(0, new BigDecimal("15000.00").compareTo(result.getSalaryExpectation()));
         verify(repository).existsByUserId(1L);
         verify(repository).save(profile);
     }
