@@ -15,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -31,6 +32,9 @@ class ResumeServiceTest {
 
     @Mock
     private ResumeMapper mapper;
+
+    @Mock
+    private ResumeTextExtractor textExtractor;
 
     @InjectMocks
     private ResumeService service;
@@ -66,27 +70,66 @@ class ResumeServiceTest {
     }
 
     @Test
-    void upload_shouldSaveResume() {
+    void upload_shouldSaveResume() throws IOException {
         MockMultipartFile file = new MockMultipartFile(
                 "file", "curriculo.pdf", "application/pdf", new byte[]{1, 2, 3});
 
+        when(textExtractor.extract(file)).thenReturn("Java Spring Boot PostgreSQL");
         when(repository.countByUserId(1L)).thenReturn(0L);
         when(repository.save(any(Resume.class))).thenReturn(resume);
         when(mapper.toResponse(resume)).thenReturn(response);
+
+        resume.setProcessingStatus(ProcessingStatus.COMPLETED);
+        response.setProcessingStatus(ProcessingStatus.COMPLETED);
 
         ResumeResponse result = service.upload(1L, file, "pt-BR");
 
         assertNotNull(result);
         assertEquals("curriculo.pdf", result.getFileName());
         assertEquals(1, result.getVersion());
+        assertEquals(ProcessingStatus.COMPLETED, result.getProcessingStatus());
+        verify(textExtractor).extract(file);
         verify(repository).save(any(Resume.class));
     }
 
     @Test
-    void upload_shouldIncrementVersionForEachResume() {
+    void upload_shouldSetFailedStatusWhenExtractionFails() throws IOException {
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "quebrado.pdf", "application/pdf", new byte[]{1, 2, 3});
+
+        when(textExtractor.extract(file)).thenThrow(new IOException("corrupted pdf"));
+
+        Resume failed = new Resume();
+        failed.setId(1L);
+        failed.setUserId(1L);
+        failed.setFileName("quebrado.pdf");
+        failed.setFileType("application/pdf");
+        failed.setFileSize(3L);
+        failed.setLanguage("pt-BR");
+        failed.setVersion(1);
+        failed.setProcessingStatus(ProcessingStatus.FAILED);
+
+        ResumeResponse failedResponse = new ResumeResponse();
+        failedResponse.setId(1L);
+        failedResponse.setFileName("quebrado.pdf");
+        failedResponse.setProcessingStatus(ProcessingStatus.FAILED);
+
+        when(repository.countByUserId(1L)).thenReturn(0L);
+        when(repository.save(any(Resume.class))).thenReturn(failed);
+        when(mapper.toResponse(failed)).thenReturn(failedResponse);
+
+        ResumeResponse result = service.upload(1L, file, "pt-BR");
+
+        assertEquals(ProcessingStatus.FAILED, result.getProcessingStatus());
+        verify(repository).save(any(Resume.class));
+    }
+
+    @Test
+    void upload_shouldIncrementVersionForEachResume() throws IOException {
         MockMultipartFile file = new MockMultipartFile(
                 "file", "curriculo2.pdf", "application/pdf", new byte[]{1, 2, 3});
 
+        when(textExtractor.extract(file)).thenReturn("texto");
         when(repository.countByUserId(1L)).thenReturn(2L);
 
         Resume newResume = new Resume();

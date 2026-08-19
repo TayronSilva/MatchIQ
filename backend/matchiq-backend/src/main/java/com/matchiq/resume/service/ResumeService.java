@@ -1,6 +1,7 @@
 package com.matchiq.resume.service;
 
 import com.matchiq.common.exception.ResourceNotFoundException;
+import com.matchiq.resume.domain.ProcessingStatus;
 import com.matchiq.resume.domain.Resume;
 import com.matchiq.resume.dto.ResumeResponse;
 import com.matchiq.resume.dto.UpdateResumeRequest;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @Service
@@ -22,6 +24,7 @@ public class ResumeService {
 
     private final ResumeRepository repository;
     private final ResumeMapper mapper;
+    private final ResumeTextExtractor textExtractor;
 
     @Transactional
     public ResumeResponse upload(Long userId, MultipartFile file, String language) {
@@ -44,6 +47,14 @@ public class ResumeService {
         resume.setFileSize(file.getSize());
         resume.setLanguage(language);
         resume.setVersion((int) version);
+
+        try {
+            String extractedText = textExtractor.extract(file);
+            resume.setExtractedText(extractedText);
+            resume.setProcessingStatus(ProcessingStatus.COMPLETED);
+        } catch (IOException | RuntimeException e) {
+            resume.setProcessingStatus(ProcessingStatus.FAILED);
+        }
 
         Resume saved = repository.save(resume);
         return mapper.toResponse(saved);
