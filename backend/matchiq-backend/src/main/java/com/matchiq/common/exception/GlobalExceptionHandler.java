@@ -42,6 +42,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
+    @ExceptionHandler(SkillAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponse> handleSkillAlreadyExists(SkillAlreadyExistsException ex) {
+        ErrorResponse error = new ErrorResponse(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
         ErrorResponse error = new ErrorResponse(ex.getMessage());
