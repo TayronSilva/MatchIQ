@@ -11,15 +11,16 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 
 /**
- * Cliente para a Serverless Inference API da Hugging Face (free tier).
- * Retorna null quando a chamada falha (rede, token inválido, modelo carregando, etc.)
+ * Cliente para o router de Inference Providers da Hugging Face (free tier),
+ * endpoint compatível com a OpenAI API: POST /v1/chat/completions.
+ * Retorna null quando a chamada falha (rede, token inválido, modelo indisponível, etc.)
  * para que o serviço caia no fallback local.
  */
 @Slf4j
 @Service
 public class HuggingFaceClient {
 
-    private static final String API_URL = "https://api-inference.huggingface.co/models/";
+    private static final String API_URL = "https://router.huggingface.co/v1/chat/completions";
 
     private final HttpClient httpClient;
     private final String apiKey;
@@ -30,7 +31,7 @@ public class HuggingFaceClient {
         this.apiKey = apiKey;
         this.model = model;
         this.httpClient = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(5))
+                .connectTimeout(Duration.ofSeconds(10))
                 .build();
     }
 
@@ -45,12 +46,17 @@ public class HuggingFaceClient {
 
         try {
             String body = """
-                    {"inputs": "%s", "parameters": {"max_new_tokens": 500, "temperature": 0.7}}
-                    """.formatted(escapeJson(prompt));
+                    {
+                      "model": "%s",
+                      "messages": [{"role": "user", "content": "%s"}],
+                      "max_tokens": 600,
+                      "temperature": 0.7
+                    }
+                    """.formatted(model, escapeJson(prompt));
 
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(API_URL + model))
-                    .timeout(Duration.ofSeconds(30))
+                    .uri(URI.create(API_URL))
+                    .timeout(Duration.ofSeconds(45))
                     .header("Authorization", "Bearer " + apiKey)
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(body))
@@ -63,33 +69,58 @@ public class HuggingFaceClient {
                 return null;
             }
 
-            // a resposta vem como um array JSON: [{"generated_text": "..."}]
-            return extractGeneratedText(response.body());
+            return extractContent(response.body());
         } catch (Exception e) {
             log.warn("HuggingFace call failed: {}", e.getMessage());
             return null;
         }
     }
 
-    private String extractGeneratedText(String json) {
+    /**
+     * Extrai o texto de choices[0].message.content (ou reasoning_content como fallback)
+     * da resposta JSON do chat completions.
+     */
+    private String extractContent(String json) {
         try {
-            int idx = json.indexOf("\"generated_text\":\"");
-            if (idx == -1) {
-                return null;
+            String content = extractField(json, "\"message\":{\"content\":");
+            if (content == null) {
+                content = extractField(json, "\"reasoning_content\":");
             }
-            int start = idx + "\"generated_text\":\"".length();
-            int end = json.indexOf("\"", start);
-            if (end == -1) {
-                return null;
-            }
-            return json.substring(start, end)
-                    .replace("\\n", "\n")
-                    .replace("\\\"", "\"")
-                    .replace("\\u003c", "<")
-                    .replace("\\u003e", ">");
+            return content;
         } catch (Exception e) {
             return null;
         }
+    }
+
+    private String extractField(String json, String fieldMarker) {
+        int idx = json.indexOf(fieldMarker);
+        if (idx == -1) {
+            return null;
+        }
+        int start = idx + fieldMarker.length();
+        if (start >= json.length() || json.charAt(start) != '"') {
+            return null;
+        }
+        start++;
+        int end = json.indexOf("\"", start);
+        if (end == -1) {
+            return null;
+        }
+        return json.substring(start, end)
+                .replace("\\n", "\n")
+                .replace("\\\"", "\"")
+                .replace("\\u003c", "<")
+                .replace("\\u003e", ">")
+                .replace("\\u00e9", "é")
+                .replace("\\u00e1", "á")
+                .replace("\\u00e3", "ã")
+                .replace("\\u00e7", "ç")
+                .replace("\\u00ea", "ê")
+                .replace("\\u00f3", "ó")
+                .replace("\\u00ed", "í")
+                .replace("\\u00fa", "ú")
+                .replace("\\u00f4", "ô")
+                .replace("\\u00e0", "à");
     }
 
     private String escapeJson(String text) {
