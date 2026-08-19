@@ -1,0 +1,37 @@
+# Modelo de Currículo (Guia 3)
+
+FULANO DE TAL CICLANO DA SILVA
+Bairro dos Bobocas, Cidade Genérica - UF  | Contato: (11) 99999-9999
+E-mail: fulanodetal@emailfalso.com  | LinkedIn: linkedin.com/in/fulanodetal
+GitHub: github.com/fulanodetal
+
+OBJETIVO: Desenvolvedor de Games / Desenvolvedor de Software
+
+RESUMO PROFISSIONAL: Profissional de desenvolvimento com foco na criação de sistemas interativos e mecânicas de jogos. Experiência na otimização de performance de código e integração de APIs. Perfil analítico e colaborativo, focado em resolver problemas complexos de arquitetura de software e aplicar boas práticas de programação para garantir a escalabilidade dos projetos.
+
+FORMAÇÃO ACADÊMICA
+Ensino Superior em Análise e Desenvolvimento de Sistemas | UniFake (01/2010 - atualmente)
+
+EXPERIÊNCIA PROFISSIONAL
+Empresa Bem Séria de T.I. LTDA
+Desenvolvedor Júnior - (03/2024 - Atual)
+* Atuei no desenvolvimento e manutenção de mecânicas de gameplay utilizando C# e Unity, reduzindo os bugs reportados na fase de testes em 30%.
+* Refatorei scripts legados de movimentação de personagens, o que melhorou o tempo de resposta e aumentou o FPS do projeto principal em cerca de 15%.
+* Implementei integrações de API para sistemas de login e salvamento em nuvem, atendendo a mais de 10.000 usuários simultâneos no lançamento.
+
+Província Fictícia Corp
+Estagiário de Suporte e Automação - (01/2023 - 02/2024)
+* Desenvolvi scripts em Python para automatizar o fluxo de arquivamento digital e controle de documentos do setor administrativo, economizando 12 horas semanais da equipe.
+* Realizei a manutenção de bancos de dados SQL internos, otimizando consultas que reduziram o tempo de carregamento de relatórios em 40%.
+* Prestei suporte técnico de nível 1 para uma base de 50 colaboradores, garantindo a resolução de chamados com um SLA médio de 4 horas.
+
+ATIVIDADES COMPLEMENTARES
+Mentoria e Voluntariado - Instituto Fictício de Tecnologia
+* Mentoria técnica de mais de 30 alunos iniciantes, ensinando lógica de programação e fundamentos de desenvolvimento web (HTML, CSS e JavaScript).
+* Fui responsável pelo pitch técnico do projeto final da equipe, conquistando a classificação entre as 3 melhores soluções no hackathon interno da instituição.
+
+COMPETÊNCIAS TÉCNICAS
+* Linguagens: C#, C++, Python, JavaScript.
+* Ferramentas e Engines: Unity, Unreal Engine, Git/GitHub, Docker.
+* Banco de Dados: MySQL, PostgreSQL.
+* Metodologias: Scrum, Kanban, versionamento de código e code review.

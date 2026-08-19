@@ -25,6 +25,7 @@ public class RecommendationService {
     private final RecommendationMapper mapper;
     private final MatchMapper matchMapper;
     private final HuggingFaceClient huggingFaceClient;
+    private final KnowledgeBaseService knowledgeBaseService;
 
     @Transactional
     public RecommendationResponse generate(Long userId, Long matchId) {
@@ -100,11 +101,16 @@ public class RecommendationService {
     }
 
     private String buildPrompt(List<String> gaps) {
+        String gupyGuide = knowledgeBaseService.gupyGuide();
+        String knowledgeContext = gupyGuide.isBlank()
+                ? ""
+                : "\n\nUse este guia como referência para deixar o plano alinhado ao que a IA da Gupy valoriza em 2026:\n" + gupyGuide;
+
         return """
                 Você é um mentor de carreira para desenvolvedores. Com base nas skills que faltam no currículo do candidato para uma vaga, gere um plano de estudos prático e objetivo em português.
                 Skills ausentes: %s
-                Responda apenas com o plano de estudos, em tópicos numerados, com recursos sugeridos e um projeto prático final.
-                """.formatted(String.join(", ", gaps));
+                Responda apenas com o plano de estudos, em tópicos numerados, com recursos sugeridos e um projeto prático final.%s
+                """.formatted(String.join(", ", gaps), knowledgeContext);
     }
 
     private RecommendationPriority priorityFor(int score) {

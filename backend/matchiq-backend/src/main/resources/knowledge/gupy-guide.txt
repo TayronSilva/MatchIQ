@@ -1,0 +1,82 @@
+# Como Vencer a Gupy em 2026: O Guia Definitivo Atualizado para Agentes de IA (100% Sem Hack)
+
+1. Introdução e Contexto
+Olá, pessoal! preparei esse doc informativo sobre o recrutamento na plataforma Gupy! Sob algumas leves ameaças e sentir que quase fui expulsa dos Juninhos, sigo deixando algumas dicas planejadas com carinho! Durante minhas pesquisas, pra minha surpresa percebi que a Gupy teve uma atualização e a antiga I.A que era utilizada por eles (falecida Gaia) foi substituída!
+Em 2026, a Gupy não usa mais apenas um robozinho de leitura simples; agora, o sistema é um ecossistema de Agentes de IA Generativa baseados em modelos Transformer (como GPT, BERT e Llama). Esses agentes usam mecanismos de autoatenção para entender o contexto real das suas frases.
+Basicamente, a Gupy agora tem "cérebro" e parou de cair em tramoias com palavras-chave :(
+
+2. A Nova Inteligência: Processamento Semântico
+Antigamente, a galera tentava enganar o sistema espalhando palavras-chave escondidas no currículo (o famoso Keyword Stuffing). Em 2026, isso é quase um desastre profissional. Os novos agentes detectam a anomalia de densidade e penalizam seu perfil. O foco agora é o Processamento Semântico Profundo. Precisamos EQUILIBRAR.
+
+3. Tabela Comparativa: O que mudou no cérebro do robô?
+O QUE A IA IGNORAVA EM 2024? | O QUE OS AGENTES DE IA BUSCAM EM 2026?
+Palavras-chave isoladas e repetidas. | Contexto e evidências de impacto (provas numéricas).
+Listas de competências sem nexo. | Campo Semântico: Ela entende que "desenvolvimento de interfaces" e "front-end" são do mesmo domínio.
+Ordem de chegada das candidaturas. | Ranking Dinâmico: O score (0 a 100) dita quem o recrutador vê primeiro.
+Mentiras para "parecer perfeito". | Padrões de confiabilidade: Cruzamento de dados com seu LinkedIn.
+
+4. As Regras: O Limite de 8 Etapas e o Selo de Feedback
+Ninguém aguentava mais processos que pareciam um processo de cartório!! Para humanizar o processo (e manter a sanidade dos candidatos), a Gupy impôs regras rígidas para as empresas em 2026:
+* Limite de 8 Etapas: Agora, o máximo permitido são 8 etapas por vaga. Se a empresa quiser inventar a 9ª, o sistema bloqueia.
+* Selo Empresa que dá Feedback: Este selo é o certificado das boas empresas. Para ter um, a contratante precisa:
+   * Enviar 90% dos feedbacks de processos encerrados.
+   * Ter no máximo 10% de suas vagas abertas por mais de 90 dias.
+Mesmo com menos etapas, você ainda precisa passar pelos portais iniciais para ser visto por um humano.
+
+5. Os Portais Eliminatórios: Testes de Lógica e Fit Cultural
+Os testes iniciais não são apenas "formalidades". Eles são Gates (Portais). Se a empresa configurar uma nota mínima e você não atingir, seu currículo excelente ficará "oculto" :(
+A Regra dos 70% e o Risco de Invisibilidade: Se você cumpre menos de 70% dos requisitos técnicos da vaga, o sistema pode aplicar uma reprovação automática ou te jogar para uma aba secundária que os recrutadores raramente abrem. Não gaste energia em vagas onde o seu "match" é baixo demais.
+Dica Extra: No Fit Cultural, o sistema detecta padrões de "respostas socialmente desejáveis" (mentiras). Responda com honestidade, mas com um olho nos valores que a empresa declara no site oficial! Recomendo utilizar uma i.a pra escanear os valores da empresa para que você responda baseando-se nisso.
+
+6. Estratégia do Perfil Único (CPF Único) e Cruzamento com LinkedIn
+Aqui está o maior erro: tentar ser "vendedor" hoje e "cozinheiro" amanhã no mesmo perfil. A Gupy funciona por CPF Único. Se você altera seu objetivo profissional drasticamente para uma vaga específica, você desconfigura todas as suas outras candidaturas ativas!
+Passo a Passo para Atualização Segura:
+1. Escolha um Cargo Foco: A IA foca no cargo principal. Atirar para áreas diferentes (ex: Logística e Beleza) sinaliza baixa confiabilidade.
+2. Sempre Acrescente, Nunca Exclua: Viu uma vaga que pede "Metodologias Ágeis"? Adicione isso à sua experiência, mas não apague o que já estava lá.
+3. Sincronize com o LinkedIn: Os agentes de IA cruzam os dados. Se no LinkedIn você é "Gerente" e na Gupy você se diz "Estagiário", o score cai na hora.
+
+7. Preenchimento de Experiências: Métodos ERAF e CAR
+A IA da Gupy em 2026 é viciada em entidades numéricas e verbos de ação. Para o robô, o que não tem número ou ferramenta é apenas "conversa fiada". Use o método ERAF.
+Preenchimento Ruim (O que te mantém no fundo do ranking):
+Cargo: Analista de Suporte
+Descrição: Atendia chamados de usuários, resolvia problemas de computador e ajudava a equipe.
+Preenchimento Otimizado (O que a IA ama):
+Cargo: Analista de Suporte Técnico (Nível 1).
+Descrição:
+[E] Atuei no atendimento de cerca de 40 chamados diários via ServiceNow.
+[F] Utilizei ferramentas de acesso remoto e configuração de diretórios no Active Directory.
+[R] Reduzi o tempo médio de espera (SLA) em 15% no primeiro semestre.
+[A] Aprendi a implementar protocolos de segurança de dados seguindo a LGPD para novos colaboradores.
+(Legenda do Método: [E]xemplo, [F]erramenta, [R]esultado, [A]prendizado)
+
+8. Otimização de Campos Críticos e Tags
+Além da experiência, você tem um espaço só seu onde pode brilhar de forma personalizada!! Embora haja pessoas que ignorem, é bem importante. Existem dois campos que são o espaço mais importante para os Agentes de IA:
+* Campo "Apresente-se" (Personalizar Candidatura): Embora o limite técnico possa ser maior, os recrutadores focam nos primeiros 250 caracteres. Seja cirúrgico e técnico. Não diga que é "esforçado"; diga qual problema você resolve. Este campo é único por vaga, então use-o para dar o match final.
+* Tags de Habilidades (Até 30 tags): Esse é o campo com maior peso para o ranking.
+* Dica extra: Copie a descrição da vaga, jogue em alguma i.a e peça: "Quais são as 30 habilidades técnicas essenciais desta vaga para preencher as tags da Gupy?". Filtre e preencha todas!
+
+9. O Hack Estratégico: Voluntariado técnico
+Se você é júnior, o tempo de mercado pode ser seu maior desafio. A Gupy não tem uma seção de voluntariado que conte pontos para senioridade. Por isso, você deve inserir o voluntariado técnico dentro da seção de Experiência Profissional.
+* Por que isso funciona? Ao colocar no campo de experiência, você "força" a IA a calcular esse tempo como Tempo de Mercado. Se você fez o site de uma ONG por 6 meses, para a IA, você tem 6 meses de experiência como Dev.
+* Diferenciação: Voluntariado social (ex: ajudar em asilo) vai em "Dados Adicionais". Voluntariado técnico (onde você usou hard skills) vai na Experiência.
+Isso aumenta seu score de senioridade automaticamente para os Agentes de IA.
+
+10. Resumo Comentado:
+Se você achava que dava para vencer o robô da Gupy escrevendo duas linhas em formato de textão corrido, trago verdades dolorosas: não vai rolar! Mas calma, vou te explicar bem o porquê de você precisar caprichar nessa seção e como fazer isso sem sofrer! :)
+A Regra de Ouro dos Tópicos de Impacto: Nada de blocos gigantes de texto que dão preguiça até no robô!!!! Organizar sua experiência em tópicos limpos facilita a vida das duas únicas leituras que importam no seu processo:
+* O robô consegue escanear suas competências de forma limpa e sem bugar.
+* O recrutador humano (quando finalmente abrir seu perfil) não desiste de ler a sua história no meio do caminho.
+* A fórmula mágica do sucesso: Cada tópico deve seguir a estrutura de Verbo de Ação + O que fez + Ferramenta + Resultado.
+E sim, na Gupy tamanho é documento (100% completo é lei)! Sabia que o campo de experiências profissionais da Gupy não tem limite de caracteres? E a estatística não mente: perfis com preenchimento 100% completo têm 3x mais chances de aparecer no Top 10 do ranking dos recrutadores!!!
+Mas atenção: escrever muito NÃO é encher linguiça com clichês como "sou proativo e focado" :P
+A IA simplesmente ignora. O foco é descrever detalhadamente suas tarefas reais, projetos e atividades do dia a dia!
+Seja específico ou seja esquecido (O poder dos números): A IA da Gupy é contextual e tem uma paixão secreta por números, porcentagens e dados mensuráveis. Se você colocar apenas "fazia relatórios", a IA vai fingir que não viu. Mas se você detalhar o processo, seu score decola!!!!
+* Mostre o "Como": Explique a ação real por trás da tarefa (ex: em vez de "vendi coisas", use "fazia abordagem direta de clientes e fechamento de vendas").
+* Cite as Ferramentas: Softwares, metodologias, sistemas (Excel, SAP, Salesforce, Power BI, etc.) são as palavras-chave que o robô busca desesperadamente!
+* Traga Resultados: Mostre o impacto real do seu trabalho com dados reais ("bater meta de R$ 50 mil", "reduzir o tempo de busca de documentos de 10 para 2 minutos", "zero erro de estoque").
+
+11. Encerramento e Assinatura
+Lembre-se: Não pule perguntas "não obrigatórias". Para os Agentes de IA, o que não está escrito simplesmente não existe. Tentem aplicar essas dicas e boa sorte!
+
+Ass: Mandy :P
+Espero que tenham gostado!

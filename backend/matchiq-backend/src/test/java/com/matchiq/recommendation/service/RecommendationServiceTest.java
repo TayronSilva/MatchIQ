@@ -41,6 +41,9 @@ class RecommendationServiceTest {
     @Mock
     private HuggingFaceClient huggingFaceClient;
 
+    @Mock
+    private KnowledgeBaseService knowledgeBaseService;
+
     @InjectMocks
     private RecommendationService service;
 
@@ -60,6 +63,7 @@ class RecommendationServiceTest {
 
         when(matchRepository.findByIdAndUserId(1L, 1L)).thenReturn(Optional.of(match));
         when(matchMapper.readListForMatch("[\"AWS\"]")).thenReturn(List.of("AWS"));
+        when(knowledgeBaseService.gupyGuide()).thenReturn("");
         when(huggingFaceClient.generate(anyString())).thenReturn("1. Estudar AWS...\n2. Projeto prático");
 
         when(recommendationRepository.findByMatchId(1L)).thenReturn(Optional.empty());
@@ -88,6 +92,7 @@ class RecommendationServiceTest {
 
         when(matchRepository.findByIdAndUserId(1L, 1L)).thenReturn(Optional.of(match));
         when(matchMapper.readListForMatch("[\"AWS\"]")).thenReturn(List.of("AWS"));
+        when(knowledgeBaseService.gupyGuide()).thenReturn("");
         when(huggingFaceClient.generate(anyString())).thenReturn(null);
 
         when(recommendationRepository.findByMatchId(1L)).thenReturn(Optional.empty());
