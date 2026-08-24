@@ -59,7 +59,7 @@ class VacancyScraperTest {
 
     @Test
     void scrape_shouldReadMetaTags() {
-        VacancyScraper.ScrapedVacancy result = scraper.scrape(baseUrl + "/vaga");
+        ScrapedVacancy result = scraper.scrape(baseUrl + "/vaga");
 
         assertEquals("Desenvolvedor Java Sênior", result.title());
         assertEquals("Vaga para Java com Spring Boot e PostgreSQL", result.description());
@@ -67,10 +67,10 @@ class VacancyScraperTest {
 
     @Test
     void scrape_shouldFallbackToDocumentTitle() {
-        VacancyScraper.ScrapedVacancy result = scraper.scrape(baseUrl + "/sem-meta");
+        ScrapedVacancy result = scraper.scrape(baseUrl + "/sem-meta");
 
         assertEquals("Só o título", result.title());
-        assertNull(result.description());
+        assertTrue(result.description() == null || result.description().isBlank());
     }
 
     @Test

@@ -14,7 +14,7 @@ import com.matchiq.vacancy.dto.VacancyResponse.VacancySkillResponse;
 import com.matchiq.vacancy.mapper.VacancyMapper;
 import com.matchiq.vacancy.repository.VacancyRepository;
 import com.matchiq.vacancy.repository.VacancySkillRepository;
-import com.matchiq.vacancy.service.VacancyScraper.ScrapedVacancy;
+import com.matchiq.vacancy.service.ScrapedVacancy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

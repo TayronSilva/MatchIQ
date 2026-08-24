@@ -14,7 +14,7 @@ import com.matchiq.vacancy.dto.VacancyResponse;
 import com.matchiq.vacancy.mapper.VacancyMapper;
 import com.matchiq.vacancy.repository.VacancyRepository;
 import com.matchiq.vacancy.repository.VacancySkillRepository;
-import com.matchiq.vacancy.service.VacancyScraper.ScrapedVacancy;
+import com.matchiq.vacancy.service.ScrapedVacancy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
