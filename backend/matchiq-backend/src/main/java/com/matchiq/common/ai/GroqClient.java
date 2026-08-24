@@ -28,7 +28,7 @@ public class GroqClient implements AiClient {
     private final String model;
 
     public GroqClient(@Value("${api.groq.api-key:}") String apiKey,
-                      @Value("${api.groq.model:llama-3.3-70b-versatile}") String model) {
+                      @Value("${api.groq.model:openai/gpt-oss-20b}") String model) {
         this.apiKey = apiKey;
         this.model = model;
         this.httpClient = HttpClient.newBuilder()
@@ -51,7 +51,7 @@ public class GroqClient implements AiClient {
                         {"role": "system", "content": "%s"},
                         {"role": "user", "content": "%s"}
                       ],
-                      "max_tokens": 800,
+                      "max_tokens": 1500,
                       "temperature": 0.5
                     }
                     """.formatted(model, escapeJson(system), escapeJson(user));
