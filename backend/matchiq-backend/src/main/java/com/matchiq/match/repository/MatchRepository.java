@@ -14,6 +14,10 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
 
     Optional<Match> findByIdAndUserId(Long id, Long userId);
 
+    int deleteByIdAndUserId(Long id, Long userId);
+
+    int deleteByUserId(Long userId);
+
     List<Match> findByUserIdOrderByCreatedAtDesc(Long userId);
 
     List<Match> findByUserIdAndResumeIdOrderByCreatedAtDesc(Long userId, Long resumeId);

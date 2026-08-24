@@ -122,6 +122,18 @@ public class MatchService {
         return mapper.toResponse(match);
     }
 
+    @Transactional
+    public void delete(Long id, Long userId) {
+        Match match = matchRepository.findByIdAndUserId(id, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Match not found with id: " + id));
+        matchRepository.delete(match);
+    }
+
+    @Transactional
+    public void deleteAllByUserId(Long userId) {
+        matchRepository.deleteByUserId(userId);
+    }
+
     @Transactional(readOnly = true)
     public List<MatchResponse> findByResumeId(Long userId, Long resumeId) {
         resumeRepository.findByIdAndUserId(resumeId, userId)

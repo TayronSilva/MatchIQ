@@ -40,6 +40,20 @@ public class MatchController {
         return matchService.findByIdAndUserId(id, userId);
     }
 
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(Authentication authentication, @PathVariable Long id) {
+        Long userId = currentUserId(authentication);
+        matchService.delete(id, userId);
+    }
+
+    @DeleteMapping
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteAll(Authentication authentication) {
+        Long userId = currentUserId(authentication);
+        matchService.deleteAllByUserId(userId);
+    }
+
     @GetMapping("/resume/{resumeId}")
     public List<MatchResponse> listByResume(Authentication authentication, @PathVariable Long resumeId) {
         Long userId = currentUserId(authentication);
