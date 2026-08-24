@@ -30,6 +30,7 @@ export default function App() {
   const [vacancyHint, setVacancyHint] = useState('')
 
   const [matchResult, setMatchResult] = useState(null)
+  const [genStuck, setGenStuck] = useState(false)
   const [matches, setMatches] = useState([])
   const [vacancies, setVacancies] = useState({})
   const [loading, setLoading] = useState(false)
@@ -281,19 +282,27 @@ export default function App() {
     try {
       const match = await api(`/v1/matches/calculate?resumeId=${resumeId}&vacancyId=${vacancyId}`, { method: 'POST' })
       setMatchResult({ match, analysis: null, recommendation: null })
+      setGenStuck(false)
       setView('result')
       poll(match.id)
     } catch (err) { showError(err) } finally { setLoading(false) }
   }
 
   function poll(matchId) {
+    const start = Date.now()
     const interval = setInterval(async () => {
       try {
-        const analysis = await api(`/v1/analyses/match/${matchId}`).catch(() => ({ status: 'PENDING' }))
-        const recommendation = await api(`/v1/recommendations/match/${matchId}`).catch(() => ({ status: 'PENDING' }))
+        const [analysis, recommendation] = await Promise.all([
+          api(`/v1/analyses/match/${matchId}`).catch(() => ({ status: 'PENDING' })),
+          api(`/v1/recommendations/match/${matchId}`).catch(() => ({ status: 'PENDING' }))
+        ])
         setMatchResult(prev => ({ ...prev, analysis, recommendation }))
         const done = (s) => !s || s === 'COMPLETED' || s === 'FAILED'
-        if (done(analysis.status) && done(recommendation.status)) clearInterval(interval)
+        const timedOut = Date.now() - start > 30000
+        if ((done(analysis.status) && done(recommendation.status)) || timedOut) {
+          clearInterval(interval)
+          if (timedOut) setGenStuck(true)
+        }
       } catch (e) { /* mantém pollando */ }
     }, 2000)
   }
@@ -308,6 +317,7 @@ export default function App() {
         api(`/v1/recommendations/match/${matchId}`).catch(() => null)
       ])
       setMatchResult({ match, analysis, recommendation })
+      setGenStuck(false)
       setView('result')
     } catch (err) { showError(err) } finally { setLoading(false) }
   }
@@ -332,6 +342,7 @@ export default function App() {
   function backToDashboard() {
     setView('dashboard')
     setMatchResult(null)
+    setGenStuck(false)
     loadDashboard()
   }
 
@@ -424,38 +435,37 @@ export default function App() {
         )}
 
         <div className="card">
-          <h2>🧠 Diagnóstico da IA</h2>
-          {analysisLoading ? (
-            <p className="hint">Gerando análise com IA…</p>
-          ) : analysis.observations ? (
+          <h2>🧠 Diagnóstico</h2>
+          {(analysis && analysis.observations) ? (
             <p className="preserve">{analysis.observations}</p>
+          ) : match.rationale ? (
+            <>
+              <p className="preserve">{match.rationale}</p>
+              {!(analysis && analysis.observations) && (
+                <p className="tag">Resumo do score — análise completa da IA em processamento</p>
+              )}
+            </>
+          ) : analysisLoading && !genStuck ? (
+            <p className="hint">Gerando análise com IA…</p>
           ) : (
-            <p className="hint">Sem observações.</p>
+            <p className="hint">Sem diagnóstico disponível no momento.</p>
           )}
         </div>
 
         <div className="card">
           <h2>✅ O que você tem ({matched.length})</h2>
-          {analysisLoading ? (
-            <p className="hint">Analisando…</p>
-          ) : (
-            <div className="chips">
-              {matched.length ? matched.map((s, i) => <span key={i} className="chip ok">{s}</span>)
-                : <span className="hint">Nenhuma skill detectada</span>}
-            </div>
-          )}
+          <div className="chips">
+            {matched.length ? matched.map((s, i) => <span key={i} className="chip ok">{s}</span>)
+              : <span className="hint">Nenhuma skill detectada</span>}
+          </div>
         </div>
 
         <div className="card">
           <h2>❌ O que falta ({missing.length})</h2>
-          {analysisLoading ? (
-            <p className="hint">Analisando…</p>
-          ) : (
-            <div className="chips">
-              {missing.length ? missing.map((s, i) => <span key={i} className="chip miss">{s}</span>)
-                : <span className="hint">Nada! Você atende tudo.</span>}
-            </div>
-          )}
+          <div className="chips">
+            {missing.length ? missing.map((s, i) => <span key={i} className="chip miss">{s}</span>)
+              : <span className="hint">Nada! Você atende tudo.</span>}
+          </div>
         </div>
 
         {recommendationFailed && (
@@ -469,8 +479,12 @@ export default function App() {
           <h2>📋 Plano de estudos</h2>
           {recommendationLoading ? (
             <p className="hint">Gerando plano com IA…</p>
-          ) : (
+          ) : recommendation.studyPlan ? (
             <p className="preserve">{recommendation.studyPlan}</p>
+          ) : genStuck ? (
+            <p className="hint">O plano de estudos da IA não foi gerado. Foque em desenvolver as skills em falta listadas acima.</p>
+          ) : (
+            <p className="hint">Sem plano de estudos.</p>
           )}
           {recommendation && recommendation.source === 'AI' && !recommendationLoading && <p className="tag">✨ Gerado com IA</p>}
         </div>
