@@ -55,6 +55,11 @@ export default function App() {
 
   const [matchResult, setMatchResult] = useState(null)
   const [genStuck, setGenStuck] = useState(false)
+  const [tailor, setTailor] = useState(null)
+  const [tailorBusy, setTailorBusy] = useState(false)
+  const [tailorList, setTailorList] = useState([])
+
+  useEffect(() => { loadTailorList() }, [])
   const [matches, setMatches] = useState(() => {
     try { return JSON.parse(localStorage.getItem('mqi_matches')) || [] } catch { return [] }
   })
@@ -384,6 +389,55 @@ export default function App() {
     showSuccess('Ranking limpo.')
   }
 
+  async function generateTailoredCv(vacancyId, resumeId) {
+    if (!resumeId || !vacancyId) {
+      showError('Selecione um currículo e uma vaga antes de gerar o CV.')
+      return
+    }
+    setTailorBusy(true)
+    setTailor(null)
+    try {
+      const created = await api('/v1/tailor', {
+        method: 'POST',
+        body: JSON.stringify({ resumeId, vacancyId })
+      })
+      setTailor(created)
+      for (let i = 0; i < 30; i++) {
+        await new Promise(r => setTimeout(r, 2500))
+        const s = await api('/v1/tailor/' + created.id)
+        setTailor(s)
+        if (s.status === 'COMPLETED' || s.status === 'FAILED') break
+      }
+    } catch (e) { showError(e) }
+    finally {
+      setTailorBusy(false)
+      loadTailorList()
+    }
+  }
+
+  async function loadTailorList() {
+    try {
+      const list = await api('/v1/tailor')
+      setTailorList(list || [])
+    } catch (e) { /* ignora */ }
+  }
+
+  async function downloadTailoredPdf(id) {
+    try {
+      const res = await fetch(API + '/v1/tailor/' + id + '/pdf', {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      })
+      if (!res.ok) { showError('Falha ao baixar o PDF.'); return }
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'curriculo-tailor.pdf'
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (e) { showError(e) }
+  }
+
   function backToDashboard() {
     setView('dashboard')
     setMatchResult(null)
@@ -446,6 +500,8 @@ export default function App() {
 
   if (view === 'result' && matchResult) {
     const { match, analysis, recommendation } = matchResult
+    const tailorVid = (match && match.vacancyId) || vacancyId
+    const tailorRid = (match && match.resumeId) || resumeId
     const analysisLoading = !analysis || analysis.status === 'PENDING'
     const analysisFailed = analysis && analysis.status === 'FAILED'
     const recommendationLoading = !recommendation || recommendation.status === 'PENDING'
@@ -528,6 +584,23 @@ export default function App() {
             <p className="hint">Sem plano de estudos.</p>
           )}
           {recommendation && recommendation.source === 'AI' && !recommendationLoading && <p className="tag">✨ Gerado com IA</p>}
+        </div>
+
+        <div className="card">
+          <h2>📄 Currículo para esta vaga</h2>
+          <button className="btn" onClick={() => generateTailoredCv(tailorVid, tailorRid)}
+            disabled={tailorBusy || !tailorVid || !tailorRid}>
+            {tailorBusy ? 'Gerando currículo…' : 'Gerar CV tailor-made'}
+          </button>
+          {!tailorRid && <p className="hint">Selecione um currículo primeiro.</p>}
+          {tailor && tailor.status === 'PENDING' && <p className="hint">Gerando currículo com IA…</p>}
+          {tailor && tailor.status === 'FAILED' && <p className="hint">Não foi possível gerar o currículo agora. Tente novamente.</p>}
+          {tailor && tailor.status === 'COMPLETED' && tailor.contentMarkdown && (
+            <>
+              <div className="md"><ReactMarkdown remarkPlugins={[remarkGfm]}>{tailor.contentMarkdown}</ReactMarkdown></div>
+              <button className="btn" onClick={() => downloadTailoredPdf(tailor.id)}>⬇ Baixar PDF</button>
+            </>
+          )}
         </div>
 
         <button className="btn" onClick={backToDashboard}>← Voltar ao dashboard</button>
@@ -702,6 +775,29 @@ export default function App() {
             </div>
           </div>
         </>
+      )}
+
+      <div className="section-head">
+        <h2>📂 Meus CVs gerados</h2>
+      </div>
+      {tailorList.length === 0 ? (
+        <div className="empty">Nenhum currículo gerado ainda.</div>
+      ) : (
+        <div className="rank-list">
+          {tailorList.map(t => (
+            <div key={t.id} className="rank-item">
+              <div className="rank-main">
+                <div className="rank-title">{vacancies[t.vacancyId]?.title || 'Vaga'}</div>
+                <div className="rank-sub">
+                  {new Date(t.createdAt).toLocaleDateString('pt-BR')} · {t.status === 'COMPLETED' ? 'Pronto' : t.status === 'PENDING' ? 'Gerando…' : 'Falhou'}
+                </div>
+              </div>
+              {t.status === 'COMPLETED' && (
+                <button className="btn" onClick={() => downloadTailoredPdf(t.id)}>⬇ PDF</button>
+              )}
+            </div>
+          ))}
+        </div>
       )}
 
       {error && <div className="banner error">{error}</div>}
