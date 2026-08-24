@@ -55,8 +55,12 @@ export default function App() {
 
   const [matchResult, setMatchResult] = useState(null)
   const [genStuck, setGenStuck] = useState(false)
-  const [matches, setMatches] = useState([])
-  const [vacancies, setVacancies] = useState({})
+  const [matches, setMatches] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('mqi_matches')) || [] } catch { return [] }
+  })
+  const [vacancies, setVacancies] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('mqi_vacancies')) || {} } catch { return {} }
+  })
   const [loading, setLoading] = useState(false)
   const [dashboardLoading, setDashboardLoading] = useState(false)
   const [error, setError] = useState('')
@@ -93,24 +97,32 @@ export default function App() {
   }
 
   async function loadResumes() {
+    let list = null
     try {
-      const list = await api('/v1/resumes').catch(() => [])
-      setResumes(list || [])
-      const savedId = localStorage.getItem('mqi_resumeId')
-      const exists = (list || []).some(r => String(r.id) === String(savedId))
-      if (list && list.length) {
-        const pick = exists ? list.find(r => String(r.id) === String(savedId)) : list[0]
-        setResumeId(String(pick.id))
-        setResumeName(pick.fileName || pick.originalName || pick.title || 'Currículo')
-        localStorage.setItem('mqi_resumeId', String(pick.id))
-        localStorage.setItem('mqi_resumeName', pick.fileName || pick.originalName || pick.title || 'Currículo')
-      } else {
-        setResumeId('')
-        setResumeName('')
-        localStorage.removeItem('mqi_resumeId')
-        localStorage.removeItem('mqi_resumeName')
-      }
-    } catch (e) { /* ignora */ }
+      list = await api('/v1/resumes')
+    } catch (e) {
+      list = null
+    }
+    if (list === null) {
+      // Falha de rede/backend: mantém a seleção salva no localStorage em vez de apagar.
+      return
+    }
+    setResumes(list || [])
+    const savedId = localStorage.getItem('mqi_resumeId')
+    const exists = (list || []).some(r => String(r.id) === String(savedId))
+    if (list && list.length) {
+      const pick = exists ? list.find(r => String(r.id) === String(savedId)) : list[0]
+      const name = pick.fileName || pick.originalName || pick.title || 'Currículo'
+      setResumeId(String(pick.id))
+      setResumeName(name)
+      localStorage.setItem('mqi_resumeId', String(pick.id))
+      localStorage.setItem('mqi_resumeName', name)
+    } else {
+      setResumeId('')
+      setResumeName('')
+      localStorage.removeItem('mqi_resumeId')
+      localStorage.removeItem('mqi_resumeName')
+    }
   }
 
   async function deleteResume(id) {
@@ -173,14 +185,20 @@ export default function App() {
     setDashboardLoading(true)
     try {
       const [ms, vs] = await Promise.all([
-        api('/v1/matches').catch(() => []),
-        api('/v1/vacancies').catch(() => [])
+        api('/v1/matches').catch(() => null),
+        api('/v1/vacancies').catch(() => null)
       ])
-      setMatches(ms || [])
-      const map = {}
-      ;(vs || []).forEach(v => { map[v.id] = v })
-      setVacancies(map)
-    } catch (e) { showError(e) }
+      if (ms) {
+        setMatches(ms)
+        localStorage.setItem('mqi_matches', JSON.stringify(ms))
+      }
+      if (vs) {
+        const map = {}
+        vs.forEach(v => { map[v.id] = v })
+        setVacancies(map)
+        localStorage.setItem('mqi_vacancies', JSON.stringify(map))
+      }
+    } catch (e) { /* mantém o cache local */ }
     finally { setDashboardLoading(false) }
   }
 
@@ -349,18 +367,21 @@ export default function App() {
   async function deleteMatch(id) {
     try {
       await api(`/v1/matches/${id}`, { method: 'DELETE' })
-      await loadDashboard()
-      showSuccess('Match removido do ranking.')
     } catch (err) { showError(err) }
+    const next = matches.filter(m => m.id !== id)
+    setMatches(next)
+    localStorage.setItem('mqi_matches', JSON.stringify(next))
+    showSuccess('Match removido do ranking.')
   }
 
   async function clearMatches() {
     if (!window.confirm('Limpar todo o ranking? Isso remove todos os matches testados.')) return
     try {
       await api('/v1/matches', { method: 'DELETE' })
-      await loadDashboard()
-      showSuccess('Ranking limpo.')
     } catch (err) { showError(err) }
+    setMatches([])
+    localStorage.setItem('mqi_matches', JSON.stringify([]))
+    showSuccess('Ranking limpo.')
   }
 
   function backToDashboard() {
