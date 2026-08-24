@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
-const API = '/api'
+const API = import.meta.env.VITE_API_URL || '/api'
 
 function scoreColor(s) {
   if (s >= 70) return 'var(--ok)'
