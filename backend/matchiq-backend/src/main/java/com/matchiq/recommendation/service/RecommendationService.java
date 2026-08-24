@@ -33,7 +33,7 @@ public class RecommendationService {
     private final KnowledgeBaseService knowledgeBaseService;
 
     private static final String RECOMMENDATION_SYSTEM =
-            "Você é um mentor de carreira para desenvolvedores. Gere um plano de estudos prático e objetivo em português.";
+            "Você é um mentor de carreira para desenvolvedores. Gere um plano de estudos prático, objetivo e conciso em português.";
 
     @Transactional
     public RecommendationResponse generate(Long userId, Long matchId) {
@@ -136,9 +136,14 @@ public class RecommendationService {
                 : "\n\nUse este guia como referência para deixar o plano alinhado ao que a IA da Gupy valoriza em 2026:\n" + gupyGuide;
 
         return """
-                Com base nas skills que faltam no currículo do candidato para uma vaga, gere um plano de estudos prático e objetivo em português.
+                Com base nas skills ausentes no currículo do candidato, gere um plano de estudos CURTO e prático em português.
                 Skills ausentes: %s
-                Responda apenas com o plano de estudos, em tópicos numerados, com recursos sugeridos e um projeto prático final.%s
+
+                Regras obrigatórias:
+                - No máximo 5 tópicos, um por skill em falta.
+                - Cada tópico: 1 linha de foco + no máximo 1 recurso (nome ou link curto).
+                - Nunca deixe frases pela metade; termine sempre com ponto final.
+                - Sem introduções, nem resumo final longo.%s
                 """.formatted(String.join(", ", gaps), knowledgeContext);
     }
 
