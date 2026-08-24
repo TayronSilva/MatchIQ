@@ -16,10 +16,10 @@ api:
       secret: ${JWT_SECRET:ndKEIcNdNYmnTvreZlf2RREo5v69tj2Yh3AeMTqIkys=}
   huggingface:
     api-key: ${HUGGINGFACE_API_KEY:}
-    model: ${HUGGINGFACE_MODEL:deepseek-ai/DeepSeek-V4-Flash-0731:baseten}
+    model: ${HUGGINGFACE_MODEL:Qwen/Qwen2.5-7B-Instruct}
   groq:
     api-key: ${GROQ_API_KEY:}
-    model: ${GROQ_MODEL:llama-3.3-70b-versatile}
+    model: ${GROQ_MODEL:openai/gpt-oss-20b}
   supabase:
     url: ${SUPABASE_URL:}
     service-key: ${SUPABASE_SERVICE_KEY:}
