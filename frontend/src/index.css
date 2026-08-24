@@ -64,6 +64,17 @@ h1, h2, h3 { line-height: 1.2; text-wrap: balance; }
 .subtitle { color: var(--ink-soft); text-align: center; margin: 6px 0 28px; font-size: 1rem; }
 .hint { color: var(--muted); font-size: 0.9rem; margin-bottom: 14px; }
 .preserve { white-space: pre-wrap; }
+
+.md { white-space: pre-wrap; line-height: 1.55; }
+.md > :first-child { margin-top: 0; }
+.md > :last-child { margin-bottom: 0; }
+.md h1, .md h2, .md h3 { font-size: 1rem; margin: 0.55rem 0 0.25rem; color: var(--ink); line-height: 1.25; }
+.md ul, .md ol { margin: 0.25rem 0 0.5rem 1.25rem; }
+.md li { margin: 0.15rem 0; }
+.md strong { color: var(--ink); font-weight: 700; }
+.md a { color: var(--brand); text-decoration: underline; }
+.md code { background: var(--surface-2); padding: 1px 5px; border-radius: 6px; font-size: 0.9em; }
+.md p { margin: 0.3rem 0; }
 .empty { color: var(--muted); text-align: center; padding: 26px 12px; border: 1px dashed var(--line-strong); border-radius: var(--r-card); }
 
 /* ---------- Header ---------- */

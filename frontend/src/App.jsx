@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 const API = '/api'
 
@@ -12,6 +14,28 @@ function scoreLabel(s) {
   if (s >= 70) return 'Ótimo encaixe'
   if (s >= 40) return 'Bom potencial'
   return 'Distante da vaga'
+}
+
+function buildDiagnosis(score, matched, missing) {
+  let head
+  if (score >= 80) head = 'Excelente compatibilidade! Seu currículo atende à maior parte dos requisitos da vaga.'
+  else if (score >= 50) head = 'Boa compatibilidade. Você já tem boa parte do que a vaga pede.'
+  else if (score > 0) head = 'Compatibilidade moderada. Há skills importantes a desenvolver.'
+  else head = 'Compatibilidade baixa. A vaga exige skills que ainda não identificamos no currículo.'
+  const have = matched.length
+    ? 'Skills que você já domina: ' + matched.join(', ') + '.'
+    : 'Nenhuma skill do cruzamento foi detectada no currículo.'
+  const need = missing.length
+    ? 'Reforce: ' + missing.join(', ') + '.'
+    : 'Você atende a todas as skills exigidas!'
+  return head + '\n\n' + have + '\n' + need
+}
+
+function buildPlan(missing) {
+  if (!missing.length) return 'Nenhum plano necessário: você já domina as skills exigidas pela vaga.'
+  return 'Plano sugerido (ordem recomendada):\n' +
+    missing.map((m, i) => (i + 1) + '. Estudar ' + m + ' — foque em fundamentos e pratique com projetos reais.').join('\n') +
+    '\nDica: monte um projeto de portfólio combinando essas skills para comprovar na prática.'
 }
 
 export default function App() {
@@ -441,14 +465,10 @@ export default function App() {
           ) : match.rationale ? (
             <>
               <p className="preserve">{match.rationale}</p>
-              {!(analysis && analysis.observations) && (
-                <p className="tag">Resumo do score — análise completa da IA em processamento</p>
-              )}
+              <p className="tag">Resumo do score</p>
             </>
-          ) : analysisLoading && !genStuck ? (
-            <p className="hint">Gerando análise com IA…</p>
           ) : (
-            <p className="hint">Sem diagnóstico disponível no momento.</p>
+            <p className="preserve">{buildDiagnosis(match.score, matched, missing)}</p>
           )}
         </div>
 
@@ -480,9 +500,9 @@ export default function App() {
           {recommendationLoading ? (
             <p className="hint">Gerando plano com IA…</p>
           ) : recommendation.studyPlan ? (
-            <p className="preserve">{recommendation.studyPlan}</p>
+            <div className="md"><ReactMarkdown remarkPlugins={[remarkGfm]}>{recommendation.studyPlan}</ReactMarkdown></div>
           ) : genStuck ? (
-            <p className="hint">O plano de estudos da IA não foi gerado. Foque em desenvolver as skills em falta listadas acima.</p>
+            <p className="preserve">{buildPlan(missing)}</p>
           ) : (
             <p className="hint">Sem plano de estudos.</p>
           )}
