@@ -3,6 +3,8 @@ spring:
     name: matchiq-backend
   profiles:
     active: dev
+  config:
+    import: optional:file:.env[.properties]
   servlet:
     multipart:
       max-file-size: 10MB
@@ -15,6 +17,9 @@ api:
   huggingface:
     api-key: ${HUGGINGFACE_API_KEY:}
     model: ${HUGGINGFACE_MODEL:deepseek-ai/DeepSeek-V4-Flash-0731:baseten}
+  groq:
+    api-key: ${GROQ_API_KEY:}
+    model: ${GROQ_MODEL:llama-3.3-70b-versatile}
   supabase:
     url: ${SUPABASE_URL:}
     service-key: ${SUPABASE_SERVICE_KEY:}

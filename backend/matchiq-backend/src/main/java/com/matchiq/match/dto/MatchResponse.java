@@ -24,6 +24,8 @@ public class MatchResponse {
 
     private Integer score;
 
+    private String rationale;
+
     private List<String> matchedSkills;
 
     private List<String> missingSkills;

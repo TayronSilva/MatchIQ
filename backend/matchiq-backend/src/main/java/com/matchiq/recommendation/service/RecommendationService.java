@@ -1,7 +1,9 @@
 package com.matchiq.recommendation.service;
 
+import com.matchiq.common.ai.AiClient;
 import com.matchiq.common.exception.ResourceNotFoundException;
 import com.matchiq.match.domain.Match;
+import com.matchiq.match.domain.MatchStatus;
 import com.matchiq.match.mapper.MatchMapper;
 import com.matchiq.match.repository.MatchRepository;
 import com.matchiq.recommendation.domain.Recommendation;
@@ -11,11 +13,14 @@ import com.matchiq.recommendation.dto.RecommendationResponse;
 import com.matchiq.recommendation.mapper.RecommendationMapper;
 import com.matchiq.recommendation.repository.RecommendationRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RecommendationService {
@@ -24,8 +29,11 @@ public class RecommendationService {
     private final MatchRepository matchRepository;
     private final RecommendationMapper mapper;
     private final MatchMapper matchMapper;
-    private final HuggingFaceClient huggingFaceClient;
+    private final AiClient aiClient;
     private final KnowledgeBaseService knowledgeBaseService;
+
+    private static final String RECOMMENDATION_SYSTEM =
+            "Você é um mentor de carreira para desenvolvedores. Gere um plano de estudos prático e objetivo em português.";
 
     @Transactional
     public RecommendationResponse generate(Long userId, Long matchId) {
@@ -39,7 +47,7 @@ public class RecommendationService {
         RecommendationSource source = RecommendationSource.LOCAL;
 
         if (!gaps.isEmpty()) {
-            aiStudyPlan = huggingFaceClient.generate(buildPrompt(gaps));
+            aiStudyPlan = aiClient.chat(RECOMMENDATION_SYSTEM, buildPrompt(gaps));
             if (aiStudyPlan != null && !aiStudyPlan.isBlank()) {
                 source = RecommendationSource.AI;
             }
@@ -50,13 +58,34 @@ public class RecommendationService {
 
         recommendation.setUserId(userId);
         recommendation.setMatchId(matchId);
+        recommendation.setStatus(MatchStatus.PENDING);
+        recommendationRepository.save(recommendation);
+
         recommendation.setSuggestionsJson(mapper.toJson(suggestions));
         recommendation.setStudyPlan(aiStudyPlan == null || aiStudyPlan.isBlank() ? buildLocalStudyPlan(gaps) : aiStudyPlan);
         recommendation.setPriority(priorityFor(match.getScore()));
         recommendation.setSource(source);
+        recommendation.setStatus(MatchStatus.COMPLETED);
 
         Recommendation saved = recommendationRepository.save(recommendation);
         return mapper.toResponse(saved);
+    }
+
+    /**
+     * Dispara a geração em background; o frontend faz polling do status.
+     */
+    @Async
+    @Transactional
+    public void generateAsync(Long userId, Long matchId) {
+        try {
+            generate(userId, matchId);
+        } catch (Exception e) {
+            log.warn("Geração assíncrona de recomendação falhou para match {}: {}", matchId, e.getMessage());
+            recommendationRepository.findByMatchId(matchId).ifPresent(r -> {
+                r.setStatus(MatchStatus.FAILED);
+                recommendationRepository.save(r);
+            });
+        }
     }
 
     @Transactional(readOnly = true)
@@ -107,7 +136,7 @@ public class RecommendationService {
                 : "\n\nUse este guia como referência para deixar o plano alinhado ao que a IA da Gupy valoriza em 2026:\n" + gupyGuide;
 
         return """
-                Você é um mentor de carreira para desenvolvedores. Com base nas skills que faltam no currículo do candidato para uma vaga, gere um plano de estudos prático e objetivo em português.
+                Com base nas skills que faltam no currículo do candidato para uma vaga, gere um plano de estudos prático e objetivo em português.
                 Skills ausentes: %s
                 Responda apenas com o plano de estudos, em tópicos numerados, com recursos sugeridos e um projeto prático final.%s
                 """.formatted(String.join(", ", gaps), knowledgeContext);

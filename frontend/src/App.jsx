@@ -110,14 +110,15 @@ export default function App() {
 
   async function handleVacancy(e) {
     e.preventDefault()
-    const url = e.target.url.value
-    const title = e.target.title.value
-    const description = e.target.description.value
+    const url = e.target.url.value.trim()
+    const title = e.target.title.value.trim()
+    const description = e.target.description.value.trim()
     setLoading(true)
     setError('')
     try {
       let data
       if (url && !title && !description) {
+        // só o link: tenta o scraper
         try {
           data = await api('/v1/vacancies/from-url?url=' + encodeURIComponent(url), {
             method: 'POST'
@@ -135,12 +136,18 @@ export default function App() {
           setLoading(false)
           return
         }
-      } else {
+      } else if (title && description) {
+        // manual: título + descrição preenchidos
         data = await api('/v1/vacancies', {
           method: 'POST',
           body: JSON.stringify({ title, description })
         })
         setVacancyNeedsInfo(false)
+      } else {
+        // nem link completo, nem manual completo
+        showError('Cole o link da vaga OU preencha título + descrição.')
+        setLoading(false)
+        return
       }
       setVacancyId(data.id)
       showSuccess('Vaga salva! Clique em "Ver meu match".')
@@ -179,11 +186,27 @@ export default function App() {
       const match = await api(`/v1/matches/calculate?resumeId=${resumeId}&vacancyId=${vacancyId}`, {
         method: 'POST'
       })
-      const analysis = await api(`/v1/analyses/generate?matchId=${match.id}`, { method: 'POST' })
-      const recommendation = await api(`/v1/recommendations/generate?matchId=${match.id}`, { method: 'POST' })
-      setMatchResult({ match, analysis, recommendation })
+      setMatchResult({ match, analysis: null, recommendation: null })
       setView('result')
+      poll(match.id)
     } catch (err) { showError(err) } finally { setLoading(false) }
+  }
+
+  // A análise e a recomendação são geradas em background; vamos consultando o status.
+  function poll(matchId) {
+    const interval = setInterval(async () => {
+      try {
+        const analysis = await api(`/v1/analyses/match/${matchId}`).catch(() => ({ status: 'PENDING' }))
+        const recommendation = await api(`/v1/recommendations/match/${matchId}`).catch(() => ({ status: 'PENDING' }))
+        setMatchResult(prev => ({ ...prev, analysis, recommendation }))
+        const done = (s) => !s || s === 'COMPLETED' || s === 'FAILED'
+        if (done(analysis.status) && done(recommendation.status)) {
+          clearInterval(interval)
+        }
+      } catch (e) {
+        // mantém pollando
+      }
+    }, 2000)
   }
 
   // ---------- TELAS ----------
@@ -219,6 +242,10 @@ export default function App() {
 
   if (view === 'result' && matchResult) {
     const { match, analysis, recommendation } = matchResult
+    const analysisLoading = !analysis || analysis.status === 'PENDING'
+    const analysisFailed = analysis && analysis.status === 'FAILED'
+    const recommendationLoading = !recommendation || recommendation.status === 'PENDING'
+    const recommendationFailed = recommendation && recommendation.status === 'FAILED'
     return (
       <div className="page">
         <header>
@@ -229,20 +256,64 @@ export default function App() {
         <div className="score-big">{match.score}%</div>
         <p className="score-label">de compatibilidade com a vaga</p>
 
+        {match.rationale && (
+          <div className="card highlight">
+            <h2>🧭 Por que esse score?</h2>
+            <p className="preserve">{match.rationale}</p>
+          </div>
+        )}
+
+        {analysisFailed && (
+          <div className="card warn">
+            <h2>⚠️ Análise indisponível</h2>
+            <p>Não consegui gerar a análise agora. Tente novamente.</p>
+          </div>
+        )}
+
+        <div className="card">
+          <h2>🧠 Diagnóstico da IA</h2>
+          {analysisLoading ? (
+            <p className="hint">Gerando análise com IA…</p>
+          ) : analysis.observations ? (
+            <p className="preserve">{analysis.observations}</p>
+          ) : (
+            <p className="hint">Sem observações.</p>
+          )}
+        </div>
+
         <div className="card">
           <h2>✅ O que você tem</h2>
-          <ul>{analysis.strengths?.length ? analysis.strengths.map((s, i) => <li key={i}>{s}</li>) : <li>Nenhuma skill detectada</li>}</ul>
+          {analysisLoading ? (
+            <p className="hint">Analisando…</p>
+          ) : (
+            <ul>{analysis.strengths?.length ? analysis.strengths.map((s, i) => <li key={i}>{s}</li>) : <li>Nenhuma skill detectada</li>}</ul>
+          )}
         </div>
 
         <div className="card">
           <h2>❌ O que falta</h2>
-          <ul>{analysis.gaps?.length ? analysis.gaps.map((g, i) => <li key={i}>{g}</li>) : <li>Nada! Você atende tudo.</li>}</ul>
+          {analysisLoading ? (
+            <p className="hint">Analisando…</p>
+          ) : (
+            <ul>{analysis.gaps?.length ? analysis.gaps.map((g, i) => <li key={i}>{g}</li>) : <li>Nada! Você atende tudo.</li>}</ul>
+          )}
         </div>
+
+        {recommendationFailed && (
+          <div className="card warn">
+            <h2>⚠️ Plano indisponível</h2>
+            <p>Não consegui gerar o plano de estudos agora. Tente novamente.</p>
+          </div>
+        )}
 
         <div className="card">
           <h2>📋 Plano de estudos</h2>
-          <p className="preserve">{recommendation.studyPlan}</p>
-          {recommendation.source === 'AI' && <p className="tag">✨ Gerado com IA</p>}
+          {recommendationLoading ? (
+            <p className="hint">Gerando plano com IA…</p>
+          ) : (
+            <p className="preserve">{recommendation.studyPlan}</p>
+          )}
+          {recommendation && recommendation.source === 'AI' && !recommendationLoading && <p className="tag">✨ Gerado com IA</p>}
         </div>
 
         <button onClick={() => { setView('dashboard'); setMatchResult(null) }}>← Fazer outro match</button>

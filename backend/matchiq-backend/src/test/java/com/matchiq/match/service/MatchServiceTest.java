@@ -9,7 +9,9 @@ import com.matchiq.match.repository.MatchRepository;
 import com.matchiq.resume.domain.Resume;
 import com.matchiq.resume.repository.ResumeRepository;
 import com.matchiq.skill.domain.ResumeSkill;
+import com.matchiq.skill.domain.Skill;
 import com.matchiq.skill.repository.ResumeSkillRepository;
+import com.matchiq.skill.repository.SkillRepository;
 import com.matchiq.vacancy.domain.Vacancy;
 import com.matchiq.vacancy.domain.VacancySkill;
 import com.matchiq.vacancy.repository.VacancyRepository;
@@ -46,6 +48,9 @@ class MatchServiceTest {
     private VacancySkillRepository vacancySkillRepository;
 
     @Mock
+    private SkillRepository skillRepository;
+
+    @Mock
     private MatchMapper mapper;
 
     @InjectMocks
@@ -79,6 +84,12 @@ class MatchServiceTest {
         return vs;
     }
 
+    private Skill skill(String name) {
+        Skill s = new Skill();
+        s.setName(name);
+        return s;
+    }
+
     @Test
     void calculate_shouldScore50PercentWhenHalfSkillsMatch() {
         when(resumeRepository.findByIdAndUserId(1L, 1L)).thenReturn(Optional.of(resume()));
@@ -87,10 +98,13 @@ class MatchServiceTest {
         when(vacancySkillRepository.findByVacancyId(1L)).thenReturn(List.of(vacancySkill(10L), vacancySkill(12L)));
         when(matchRepository.findByResumeIdAndVacancyId(1L, 1L)).thenReturn(Optional.empty());
 
+        when(skillRepository.findById(10L)).thenReturn(Optional.of(skill("Java")));
+        when(skillRepository.findById(12L)).thenReturn(Optional.of(skill("AWS")));
+
         Match saved = new Match();
         saved.setScore(50);
-        saved.setMatchedSkillsJson("[\"10\"]");
-        saved.setMissingSkillsJson("[\"12\"]");
+        saved.setMatchedSkillsJson("[\"Java\"]");
+        saved.setMissingSkillsJson("[\"AWS\"]");
         when(mapper.toJson(anyList())).thenAnswer(inv -> {
             List<String> list = inv.getArgument(0);
             return "[\"" + String.join("\",\"", list) + "\"]";
@@ -104,9 +118,9 @@ class MatchServiceTest {
         MatchResponse result = service.calculate(1L, 1L, 1L);
 
         assertEquals(50, result.getScore());
-        // verifica que o JSON de matched/missing foi montado com as skills certas
+        // verifica que o JSON de matched/missing foi montado com os NOMES das skills
         verify(matchRepository).save(argThat(m ->
-                m.getMatchedSkillsJson().contains("10") && m.getMissingSkillsJson().contains("12")));
+                m.getMatchedSkillsJson().contains("Java") && m.getMissingSkillsJson().contains("AWS")));
     }
 
     @Test

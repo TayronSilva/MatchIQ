@@ -29,6 +29,8 @@ public class RecommendationResponse {
 
     private RecommendationSource source;
 
+    private String status;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;

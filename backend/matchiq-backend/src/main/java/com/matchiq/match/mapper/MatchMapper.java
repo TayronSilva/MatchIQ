@@ -21,6 +21,7 @@ public class MatchMapper {
         response.setResumeId(match.getResumeId());
         response.setVacancyId(match.getVacancyId());
         response.setScore(match.getScore());
+        response.setRationale(match.getRationale());
         response.setMatchedSkills(readList(match.getMatchedSkillsJson()));
         response.setMissingSkills(readList(match.getMissingSkillsJson()));
         response.setAlgorithmVersion(match.getAlgorithmVersion());

@@ -1,6 +1,7 @@
 package com.matchiq.recommendation.domain;
 
 import jakarta.persistence.*;
+import com.matchiq.match.domain.MatchStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -41,6 +42,10 @@ public class Recommendation {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private RecommendationSource source = RecommendationSource.LOCAL;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private MatchStatus status = MatchStatus.COMPLETED;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

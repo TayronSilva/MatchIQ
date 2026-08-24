@@ -24,6 +24,7 @@ public class AnalysisMapper {
         response.setStrengths(readList(analysis.getStrengthsJson()));
         response.setGaps(readList(analysis.getGapsJson()));
         response.setObservations(analysis.getObservations());
+        response.setStatus(analysis.getStatus() == null ? null : analysis.getStatus().name());
         response.setCreatedAt(analysis.getCreatedAt());
         response.setUpdatedAt(analysis.getUpdatedAt());
         return response;

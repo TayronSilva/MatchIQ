@@ -27,6 +27,8 @@ public class AnalysisResponse {
 
     private String observations;
 
+    private String status;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;

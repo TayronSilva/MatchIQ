@@ -1,6 +1,7 @@
 package com.matchiq.analysis.domain;
 
 import jakarta.persistence.*;
+import com.matchiq.match.domain.MatchStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -36,6 +37,10 @@ public class Analysis {
 
     @Column(name = "observations", columnDefinition = "TEXT")
     private String observations;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private MatchStatus status = MatchStatus.COMPLETED;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

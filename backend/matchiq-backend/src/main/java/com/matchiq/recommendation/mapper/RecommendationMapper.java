@@ -24,6 +24,7 @@ public class RecommendationMapper {
         response.setStudyPlan(recommendation.getStudyPlan());
         response.setPriority(recommendation.getPriority());
         response.setSource(recommendation.getSource());
+        response.setStatus(recommendation.getStatus() == null ? null : recommendation.getStatus().name());
         response.setCreatedAt(recommendation.getCreatedAt());
         response.setUpdatedAt(recommendation.getUpdatedAt());
         return response;

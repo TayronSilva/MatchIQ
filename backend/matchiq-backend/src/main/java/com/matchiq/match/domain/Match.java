@@ -34,6 +34,9 @@ public class Match {
     @Column(nullable = false)
     private Integer score;
 
+    @Column(name = "rationale", columnDefinition = "TEXT")
+    private String rationale;
+
     @Column(name = "matched_skills", columnDefinition = "TEXT")
     private String matchedSkillsJson;
 

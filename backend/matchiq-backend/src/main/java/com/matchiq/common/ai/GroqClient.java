@@ -1,6 +1,5 @@
-package com.matchiq.recommendation.service;
+package com.matchiq.common.ai;
 
-import com.matchiq.common.ai.AiClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -12,25 +11,24 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 
 /**
- * Cliente para o router de Inference Providers da Hugging Face (free tier),
- * endpoint compatível com a OpenAI API: POST /v1/chat/completions.
- * Retorna null quando a chamada falha (rede, token inválido, modelo indisponível, etc.)
- * para que o serviço caia no fallback local.
+ * Cliente para a API da Groq (endpoint compatível com OpenAI Chat Completions).
+ * Usa modelos Llama 3, que são rápidos e têm tier gratuito — resolve o "travamento"
+ * causado pelo free router da Hugging Face.
  *
- * Funciona como fallback do Groq via {@link com.matchiq.common.ai.CompositeAiClient}.
+ * Retorna null em caso de falha para que o chamador possa usar fallback local.
  */
 @Slf4j
 @Service
-public class HuggingFaceClient implements AiClient {
+public class GroqClient implements AiClient {
 
-    private static final String API_URL = "https://router.huggingface.co/v1/chat/completions";
+    private static final String API_URL = "https://api.groq.com/openai/v1/chat/completions";
 
     private final HttpClient httpClient;
     private final String apiKey;
     private final String model;
 
-    public HuggingFaceClient(@Value("${api.huggingface.api-key:}") String apiKey,
-                             @Value("${api.huggingface.model:}") String model) {
+    public GroqClient(@Value("${api.groq.api-key:}") String apiKey,
+                      @Value("${api.groq.model:llama-3.3-70b-versatile}") String model) {
         this.apiKey = apiKey;
         this.model = model;
         this.httpClient = HttpClient.newBuilder()
@@ -38,22 +36,10 @@ public class HuggingFaceClient implements AiClient {
                 .build();
     }
 
-    /**
-     * Implementação do contrato AiClient: combina system + user num único prompt,
-     * já que o free router da Hugging Face não separa papéis de forma confiável.
-     */
     @Override
     public String chat(String system, String user) {
-        String prompt = (system == null || system.isBlank()) ? user : (system + "\n\n" + user);
-        return generate(prompt);
-    }
-
-    /**
-     * Envia um prompt ao modelo e retorna o texto gerado, ou null em caso de falha.
-     */
-    public String generate(String prompt) {
         if (apiKey == null || apiKey.isBlank()) {
-            log.warn("HuggingFace API key not configured; skipping AI call");
+            log.warn("Groq API key not configured; skipping AI call");
             return null;
         }
 
@@ -61,15 +47,18 @@ public class HuggingFaceClient implements AiClient {
             String body = """
                     {
                       "model": "%s",
-                      "messages": [{"role": "user", "content": "%s"}],
-                      "max_tokens": 600,
-                      "temperature": 0.7
+                      "messages": [
+                        {"role": "system", "content": "%s"},
+                        {"role": "user", "content": "%s"}
+                      ],
+                      "max_tokens": 800,
+                      "temperature": 0.5
                     }
-                    """.formatted(model, escapeJson(prompt));
+                    """.formatted(model, escapeJson(system), escapeJson(user));
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(API_URL))
-                    .timeout(Duration.ofSeconds(45))
+                    .timeout(Duration.ofSeconds(30))
                     .header("Authorization", "Bearer " + apiKey)
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(body))
@@ -78,21 +67,17 @@ public class HuggingFaceClient implements AiClient {
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() != 200) {
-                log.warn("HuggingFace returned status {}: {}", response.statusCode(), response.body());
+                log.warn("Groq returned status {}: {}", response.statusCode(), response.body());
                 return null;
             }
 
             return extractContent(response.body());
         } catch (Exception e) {
-            log.warn("HuggingFace call failed: {}", e.getMessage());
+            log.warn("Groq call failed: {}", e.getMessage());
             return null;
         }
     }
 
-    /**
-     * Extrai o texto de choices[0].message.content (ou reasoning_content como fallback)
-     * da resposta JSON do chat completions.
-     */
     private String extractContent(String json) {
         try {
             String content = extractField(json, "\"message\":{\"content\":");
