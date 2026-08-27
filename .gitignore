@@ -1,1 +1,16 @@
 .commandcode/
+LOCAL_GUIDE.md
+
+# Local logs and run artifacts
+*.log
+*.err
+backend/matchiq-backend/run*.log
+
+# Personal documents / sample resumes (do not commit)
+TAYRONNE - CURRICULO.pdf
+curriculo-tailor*.pdf
+curriculo-tailor*.md
+backendcompleto.txt
+
+# Scratch / ad-hoc files
+scratchpad/
