@@ -1,5 +1,7 @@
 package com.matchiq.common.ai;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -8,6 +10,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
 /**
@@ -26,6 +29,7 @@ public class GroqClient implements AiClient {
     private final HttpClient httpClient;
     private final String apiKey;
     private final String model;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public GroqClient(@Value("${api.groq.api-key:}") String apiKey,
                       @Value("${api.groq.model:openai/gpt-oss-20b}") String model) {
@@ -51,8 +55,8 @@ public class GroqClient implements AiClient {
                         {"role": "system", "content": "%s"},
                         {"role": "user", "content": "%s"}
                       ],
-                      "max_tokens": 1500,
-                      "temperature": 0.5
+                      "max_tokens": 3000,
+                      "temperature": 0.3
                     }
                     """.formatted(model, escapeJson(system), escapeJson(user));
 
@@ -64,7 +68,7 @@ public class GroqClient implements AiClient {
                     .POST(HttpRequest.BodyPublishers.ofString(body))
                     .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
 
             if (response.statusCode() != 200) {
                 log.warn("Groq returned status {}: {}", response.statusCode(), response.body());
@@ -80,45 +84,100 @@ public class GroqClient implements AiClient {
 
     private String extractContent(String json) {
         try {
-            String content = extractField(json, "\"message\":{\"content\":");
-            if (content == null) {
-                content = extractField(json, "\"reasoning_content\":");
+            JsonNode root = objectMapper.readTree(json);
+            JsonNode choices = root.path("choices");
+            if (choices.isArray() && !choices.isEmpty()) {
+                JsonNode message = choices.get(0).path("message");
+                String content = message.path("content").asText(null);
+                String reasoning = message.path("reasoning_content").asText(null);
+                return pickResume(content, reasoning);
             }
-            return content;
+            return null;
         } catch (Exception e) {
             return null;
         }
     }
 
-    private String extractField(String json, String fieldMarker) {
-        int idx = json.indexOf(fieldMarker);
-        if (idx == -1) {
+    private String pickResume(String content, String reasoning) {
+        if (isResumeLike(content)) {
+            return content;
+        }
+        if (isResumeLike(reasoning)) {
+            return reasoning;
+        }
+        String recovered = extractResumeFromReasoning(content);
+        if (recovered != null) {
+            return recovered;
+        }
+        recovered = extractResumeFromReasoning(reasoning);
+        if (recovered != null) {
+            return recovered;
+        }
+        if (content != null && !content.isBlank()) {
+            return content;
+        }
+        return reasoning;
+    }
+
+    private String extractResumeFromReasoning(String text) {
+        if (text == null || text.isBlank()) {
             return null;
         }
-        int start = idx + fieldMarker.length();
-        if (start >= json.length() || json.charAt(start) != '"') {
-            return null;
+        java.util.regex.Matcher m = H1_PATTERN.matcher(text);
+        if (m.find()) {
+            String slice = text.substring(m.start());
+            if (slice.contains("## ")) {
+                return slice;
+            }
         }
-        start++;
-        int end = json.indexOf("\"", start);
-        if (end == -1) {
-            return null;
+        return null;
+    }
+
+    private static final java.util.regex.Pattern H1_PATTERN =
+            java.util.regex.Pattern.compile("(?m)^# .*");
+
+    /**
+     * Um currículo em Markdown válido começa com H1 ("# Nome") e traz seções "## ".
+     * O pensamento do modelo (reasoning) é prosa solta e não atende a esses critérios.
+     */
+    private boolean isResumeLike(String text) {
+        if (text == null || text.isBlank()) {
+            return false;
         }
-        return json.substring(start, end)
-                .replace("\\n", "\n")
-                .replace("\\\"", "\"")
-                .replace("\\u003c", "<")
-                .replace("\\u003e", ">")
-                .replace("\\u00e9", "é")
-                .replace("\\u00e1", "á")
-                .replace("\\u00e3", "ã")
-                .replace("\\u00e7", "ç")
-                .replace("\\u00ea", "ê")
-                .replace("\\u00f3", "ó")
-                .replace("\\u00ed", "í")
-                .replace("\\u00fa", "ú")
-                .replace("\\u00f4", "ô")
-                .replace("\\u00e0", "à");
+        String t = text.trim();
+        return t.startsWith("#") && t.contains("## ")
+                && !t.toLowerCase().contains("o usuário")
+                && !t.toLowerCase().contains("vou verificar")
+                && !t.toLowerCase().contains("preciso ");
+    }
+
+    private String decode(String s) {
+        StringBuilder sb = new StringBuilder();
+        int i = 0;
+        while (i < s.length()) {
+            char c = s.charAt(i);
+            if (c == '\\' && i + 1 < s.length()) {
+                char n = s.charAt(i + 1);
+                if (n == 'n') { sb.append('\n'); i += 2; continue; }
+                if (n == 't') { sb.append('\t'); i += 2; continue; }
+                if (n == 'r') { sb.append('\r'); i += 2; continue; }
+                if (n == '"') { sb.append('"'); i += 2; continue; }
+                if (n == '\\') { sb.append('\\'); i += 2; continue; }
+                if (n == 'u' && i + 5 < s.length()) {
+                    try {
+                        sb.append((char) Integer.parseInt(s.substring(i + 2, i + 6), 16));
+                        i += 6;
+                        continue;
+                    } catch (NumberFormatException ignore) { }
+                }
+                sb.append(n);
+                i += 2;
+                continue;
+            }
+            sb.append(c);
+            i++;
+        }
+        return sb.toString();
     }
 
     private String escapeJson(String text) {

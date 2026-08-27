@@ -43,6 +43,12 @@ public class TailorController {
         return service.findByIdAndUserId(currentUserId(authentication), id);
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(Authentication authentication, @PathVariable Long id) {
+        service.delete(currentUserId(authentication), id);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/{id}/pdf")
     public ResponseEntity<byte[]> pdf(Authentication authentication, @PathVariable Long id) {
         byte[] pdf = service.renderPdf(currentUserId(authentication), id);

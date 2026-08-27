@@ -21,14 +21,17 @@ public class PdfGenerator {
     private final HtmlRenderer htmlRenderer = HtmlRenderer.builder().build();
 
     private static final String CSS =
-            "body{font-family:Helvetica,Arial,sans-serif;font-size:12px;margin:36px;color:#222;line-height:1.5;}" +
-            "h1{font-size:20px;margin:0 0 4px;}" +
-            "h2{font-size:15px;border-bottom:1px solid #ccc;margin-top:18px;padding-bottom:3px;color:#333;}" +
-            "h3{font-size:13px;margin:12px 0 4px;}" +
-            "ul,ol{margin:4px 0 10px 18px;}" +
-            "li{margin:2px 0;}" +
-            "p{margin:6px 0;}" +
-            "strong{color:#111;}";
+            "body{font-family:'Helvetica','Arial',sans-serif;font-size:10.5pt;margin:28px 32px;color:#1a1a1a;line-height:1.35;}" +
+            "h1{font-size:20pt;margin:0 0 2pt;text-align:center;text-transform:uppercase;letter-spacing:1px;color:#111;}" +
+            "h2{font-size:12.5pt;margin:14pt 0 4pt;padding-bottom:2pt;border-bottom:1.5pt solid #333;color:#111;" +
+            "text-transform:uppercase;letter-spacing:0.5px;}" +
+            "h3{font-size:11pt;margin:8pt 0 2pt;color:#222;}" +
+            "p{margin:3pt 0;}" +
+            "ul,ol{margin:2pt 0 6pt 16pt;padding:0;}" +
+            "li{margin:2pt 0;}" +
+            "strong{color:#000;}" +
+            "a{color:#1a1a1a;text-decoration:none;}" +
+            "hr{border:none;}";
 
     public byte[] markdownToPdf(String markdown) {
         Node document = parser.parse(markdown == null ? "" : markdown);

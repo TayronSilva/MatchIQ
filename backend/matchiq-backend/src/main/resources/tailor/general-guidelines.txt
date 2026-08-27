@@ -1,0 +1,41 @@
+Diretrizes gerais para montagem do currículo (válidas para qualquer ATS/plataforma, ex.: LinkedIn, Gupy, RH tradicional):
+
+ESTRUTURA OBRIGATÓRIA (MARKDOWN):
+  ## Dados de contato - Nome, localização, telefone, e-mail, LinkedIn e GitHub/portfólio.
+  ## Objetivo - cargo alvo em uma linha, com o valor que o candidato entrega.
+  ## Resumo Profissional - 3 a 5 linhas, focado no problema que a pessoa resolve e no valor que entrega.
+  ## Formação Acadêmica - curso e período.
+  ## Experiência Profissional - TODOS os cargos, empresa, período e bullet points.
+  ## Atividades Complementares - mentorias, projetos e VOLUNTARIADO técnico (inclua sempre que existirem no original).
+  ## Competências Técnicas - linguagens, ferramentas, bancos de dados, metodologias.
+
+REGRA DE OURO DE INTEGRIDADE:
+  - Seja honesto: NÃO invente empresas, datas, skills, experiências, números, métricas ou resultados que não estejam no currículo original. O que não está escrito simplesmente não existe para o recrutador/robô.
+  - Em Competências Técnicas, liste apenas skills que apareçam no currículo original (seção de competências ou descritas nas experiências/projetos). Não adicione skills só porque a vaga pede.
+
+REGRA DE PESSOA (REDACAO EM PRIMEIRA PESSOA):
+  - Escreva o currículo EM PRIMEIRA PESSOA DO SINGULAR. É o candidato quem "fala" no documento.
+  - Bullets de experiência/projetos: verbos na 1ª pessoa (ex.: "Desenvolvi", "Atuo como", "Liderei", "Modelei", "Otimizei", "Mentorei", "Arquitetiei", "Implementei").
+  - NUNCA use terceira pessoa (evite "Desenvolveu", "Liderou", "Analisou", "Atua como"). Um recrutador lê o currículo como se o candidato estivesse se apresentando; a 3ª pessoa soa estranha e impessoal.
+  - O Resumo Profissional e o Objetivo também devem estar em 1ª pessoa ("Sou...", "Atuo como...", "Busco...").
+
+COMO DEIXAR O CURRÍCULO "TENTADOR" (sem mentir):
+  - Use VERBOS DE IMPACTO em primeira pessoa: "Desenvolvi", "Liderei", "Projetei", "Otimizei", "Entreguei", "Reduzi", "Escalei", "Mentorei". Evite voz passiva e clichês ("sou proativo e focado").
+  - Cada bullet segue: VERBO DE AÇÃO + o que foi feito + TECNOLOGIA + VALOR/RESULTADO entregue. Quando o original não traz números, foque no valor de negócio (ex.: "garantiu a previsibilidade de entregas", "traduziu desafios complexos em soluções robustas").
+  - ESPELHE a linguagem da VAGA: reaproveite termos-chave que a descrição usa (Java, React, microsserviços, APIs RESTful, Spring, liderança, mentoria, SaaS, IA) para alinhar semanticamente com o que o recrutador/ATS procura — desde que o candidato realmente tenha essa experiência.
+  - Dê destaque ao que mais tem peso para a vaga: posicione na ordem as experiências e projetos mais aderentes ao cargo-alvo (ex.: liderança técnica, Java/Spring, React/Full Stack, voluntariado de liderança de squads).
+  - Torne o Objetivo e o Resumo persuasivos: comece pelo diferencial do candidato e pelo problema que ele resolve, não por um cargo genérico.
+  - Mantenha tópicos limpos (3 a 6 bullets por experiência), linguagem direta e sem blocos gigantes de texto corrido.
+
+REGRA DE COMPLETUDE (NÃO TRUNCAR):
+  - Gere o documento COMPLETO. Inclua OBRIGATORIAMENTE todas as seções acima, na ordem, até fechar "Competências Técnicas". NÃO interrompa o texto no meio de uma seção e NÃO pare antes da última seção.
+
+REGRA DE CONTATO:
+  - Preserve EXATAMENTE os dados de contato do currículo original: nome, localização, telefone, e-mail, LinkedIn e GitHub/portfólio. Não invente, não omita e não altere.
+  - Se os rótulos estiverem trocados (ex.: o link do LinkedIn aparece sob "GitHub" e vice-versa), corrija o rótulo usando a PRÓPRIA URL como fonte da verdade. Não crie novas URLs.
+
+REGRA DE STATUS (FORMAÇÃO / EXPERIÊNCIA) — NÃO INVENTE:
+  - Não acrescente "(em andamento)", "(cursando)" ou "(concluído)" por dedução arbitrária.
+  - Se o original traz a DATA DE CONCLUSÃO e ela é ANTERIOR à data atual informada no prompt, apresente como CONCLUÍDA (ex.: "Concluído em 12/2025" ou mantenha "Conclusão: 12/2025").
+  - Só use "Em andamento"/"Cursando" quando não houver data de término OU a data de término for FUTURA em relação à data atual.
+  - Nunca mude o ano de conclusão informado no original.

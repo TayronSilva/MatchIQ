@@ -1,0 +1,10 @@
+Diretrizes ESPECÍFICAS para a plataforma Gupy (aplique quando a vaga for Gupy):
+
+  - A Gupy usa Agentes de IA Generativa com Processamento Semântico Profundo: NÃO faça keyword stuffing; equilibre contexto e evidências de impacto.
+  - Método ERAF para cada experiência: [E]xemplo de contexto, [F]erramenta utilizada, [R]esultado mensurável, [A]prendizado. Formato obrigatório do bullet: Verbo de Ação + O que fez + Ferramenta + Resultado.
+  - A IA é viciada em entidades numéricas, mas use %, quantidades, tempos, economia e melhorias SOMENTE quando já existirem no currículo original (ex.: "reduziu o SLA em 15%", "atendeu 10.000 usuários simultâneos"). NUNCA invente métricas "plausíveis": fabricar números é mentira e derruba o score no cruzamento de dados.
+  - Preencha 100% dos campos; perfil 100% completo tem muito mais chance de aparecer no Top 10 do ranking.
+  - Voluntariado TÉCNICO deve ir DENTRO de Experiência Profissional (conta como tempo de mercado); voluntariado social vai em Atividades Complementares.
+  - Mantenha coerência com o LinkedIn (mesmos cargos/títulos) para não derrubar o score (cruzamento de dados).
+  - Foque em um Cargo Foco; acrescente skills, nunca apague o que já existe no perfil.
+  - Não minta nem use respostas socialmente desejáveis; o sistema penaliza anomalias de densidade e padrões de mentira.
