@@ -15,4 +15,6 @@ public interface ResumeRepository extends JpaRepository<Resume, Long> {
     Optional<Resume> findByIdAndUserId(Long id, Long userId);
 
     long countByUserId(Long userId);
+
+    void deleteByUserId(Long userId);
 }

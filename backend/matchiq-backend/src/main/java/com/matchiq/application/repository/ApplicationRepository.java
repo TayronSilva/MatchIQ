@@ -19,4 +19,8 @@ public interface ApplicationRepository extends JpaRepository<Application, Long> 
     boolean existsByUserIdAndVacancyId(Long userId, Long vacancyId);
 
     void deleteByIdAndUserId(Long id, Long userId);
+
+    void deleteByUserId(Long userId);
+
+    void deleteByVacancyId(Long vacancyId);
 }

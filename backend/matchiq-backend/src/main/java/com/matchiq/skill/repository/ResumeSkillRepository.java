@@ -17,4 +17,6 @@ public interface ResumeSkillRepository extends JpaRepository<ResumeSkill, Long> 
     boolean existsByResumeIdAndSkillId(Long resumeId, Long skillId);
 
     void deleteByResumeIdAndSkillId(Long resumeId, Long skillId);
+
+    void deleteByResumeId(Long resumeId);
 }

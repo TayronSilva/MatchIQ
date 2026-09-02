@@ -13,4 +13,10 @@ public interface ResumeSessionRepository extends JpaRepository<ResumeSession, Lo
     List<ResumeSession> findByUserIdOrderByCreatedAtDesc(Long userId);
 
     Optional<ResumeSession> findByIdAndUserId(Long id, Long userId);
+
+    void deleteByResumeId(Long resumeId);
+
+    void deleteByVacancyId(Long vacancyId);
+
+    void deleteByUserId(Long userId);
 }

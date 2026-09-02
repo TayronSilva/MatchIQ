@@ -1,5 +1,6 @@
 package com.matchiq.match.service;
 
+import com.matchiq.analysis.repository.AnalysisRepository;
 import com.matchiq.analysis.service.AnalysisService;
 import com.matchiq.common.ai.AiClient;
 import com.matchiq.common.exception.ResourceNotFoundException;
@@ -8,6 +9,7 @@ import com.matchiq.match.domain.MatchStatus;
 import com.matchiq.match.dto.MatchResponse;
 import com.matchiq.match.mapper.MatchMapper;
 import com.matchiq.match.repository.MatchRepository;
+import com.matchiq.recommendation.repository.RecommendationRepository;
 import com.matchiq.recommendation.service.RecommendationService;
 import com.matchiq.resume.domain.Resume;
 import com.matchiq.resume.repository.ResumeRepository;
@@ -44,6 +46,8 @@ public class MatchService {
     private final AiClient aiClient;
     private final AnalysisService analysisService;
     private final RecommendationService recommendationService;
+    private final AnalysisRepository analysisRepository;
+    private final RecommendationRepository recommendationRepository;
     private final ObjectMapper objectMapper;
 
     @Transactional
@@ -126,12 +130,22 @@ public class MatchService {
     public void delete(Long id, Long userId) {
         Match match = matchRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Match not found with id: " + id));
+        cascadeDelete(match);
         matchRepository.delete(match);
     }
 
     @Transactional
     public void deleteAllByUserId(Long userId) {
+        List<Match> matches = matchRepository.findByUserIdOrderByCreatedAtDesc(userId);
+        for (Match match : matches) {
+            cascadeDelete(match);
+        }
         matchRepository.deleteByUserId(userId);
+    }
+
+    private void cascadeDelete(Match match) {
+        analysisRepository.deleteByMatchId(match.getId());
+        recommendationRepository.deleteByMatchId(match.getId());
     }
 
     @Transactional(readOnly = true)

@@ -1,6 +1,10 @@
 package com.matchiq.resume.service;
 
+import com.matchiq.analysis.repository.AnalysisRepository;
 import com.matchiq.common.exception.ResourceNotFoundException;
+import com.matchiq.match.domain.Match;
+import com.matchiq.match.repository.MatchRepository;
+import com.matchiq.recommendation.repository.RecommendationRepository;
 import com.matchiq.resume.domain.ProcessingStatus;
 import com.matchiq.resume.domain.Resume;
 import com.matchiq.resume.dto.ResumeResponse;
@@ -12,6 +16,7 @@ import com.matchiq.skill.domain.Skill;
 import com.matchiq.skill.repository.ResumeSkillRepository;
 import com.matchiq.skill.repository.SkillRepository;
 import com.matchiq.skill.service.SkillExtractorService;
+import com.matchiq.tailor.repository.ResumeSessionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +38,10 @@ public class ResumeService {
     private final SkillExtractorService skillExtractor;
     private final SkillRepository skillRepository;
     private final ResumeSkillRepository resumeSkillRepository;
+    private final MatchRepository matchRepository;
+    private final AnalysisRepository analysisRepository;
+    private final RecommendationRepository recommendationRepository;
+    private final ResumeSessionRepository resumeSessionRepository;
 
     @Transactional
     public ResumeResponse upload(Long userId, MultipartFile file, String language) {
@@ -123,6 +132,27 @@ public class ResumeService {
     public void delete(Long id, Long userId) {
         Resume resume = repository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Resume not found with id: " + id));
+        cascadeDeleteByResumeId(id);
         repository.delete(resume);
+    }
+
+    @Transactional
+    public void deleteAllByUserId(Long userId) {
+        List<Resume> resumes = repository.findByUserIdOrderByCreatedAtDesc(userId);
+        for (Resume resume : resumes) {
+            cascadeDeleteByResumeId(resume.getId());
+        }
+        repository.deleteByUserId(userId);
+    }
+
+    private void cascadeDeleteByResumeId(Long resumeId) {
+        resumeSkillRepository.deleteByResumeId(resumeId);
+        resumeSessionRepository.deleteByResumeId(resumeId);
+        List<Match> matches = matchRepository.findByResumeId(resumeId);
+        for (Match match : matches) {
+            analysisRepository.deleteByMatchId(match.getId());
+            recommendationRepository.deleteByMatchId(match.getId());
+        }
+        matchRepository.deleteByResumeId(resumeId);
     }
 }

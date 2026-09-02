@@ -15,4 +15,8 @@ public interface RecommendationRepository extends JpaRepository<Recommendation, 
     Optional<Recommendation> findByIdAndUserId(Long id, Long userId);
 
     List<Recommendation> findByUserIdOrderByCreatedAtDesc(Long userId);
+
+    void deleteByMatchId(Long matchId);
+
+    void deleteByUserId(Long userId);
 }

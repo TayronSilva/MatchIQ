@@ -1,10 +1,15 @@
 package com.matchiq.vacancy.service;
 
+import com.matchiq.analysis.repository.AnalysisRepository;
+import com.matchiq.application.repository.ApplicationRepository;
 import com.matchiq.common.exception.ResourceNotFoundException;
-import com.matchiq.skill.domain.ResumeSkill;
+import com.matchiq.match.domain.Match;
+import com.matchiq.match.repository.MatchRepository;
+import com.matchiq.recommendation.repository.RecommendationRepository;
 import com.matchiq.skill.domain.Skill;
 import com.matchiq.skill.repository.SkillRepository;
 import com.matchiq.skill.service.SkillExtractorService;
+import com.matchiq.tailor.repository.ResumeSessionRepository;
 import com.matchiq.vacancy.domain.Vacancy;
 import com.matchiq.vacancy.domain.VacancySkill;
 import com.matchiq.vacancy.dto.CreateVacancyRequest;
@@ -14,18 +19,23 @@ import com.matchiq.vacancy.dto.VacancyResponse.VacancySkillResponse;
 import com.matchiq.vacancy.mapper.VacancyMapper;
 import com.matchiq.vacancy.repository.VacancyRepository;
 import com.matchiq.vacancy.repository.VacancySkillRepository;
+import com.matchiq.vacancy.collector.RawVacancy;
+import com.matchiq.vacancy.domain.VacancySource;
 import com.matchiq.vacancy.service.ScrapedVacancy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class VacancyService {
 
     private static final int MIN_DESCRIPTION_LENGTH = 300;
+    private static final int STALE_DAYS = 21;
 
     private final VacancyRepository repository;
     private final VacancySkillRepository vacancySkillRepository;
@@ -33,6 +43,11 @@ public class VacancyService {
     private final SkillExtractorService skillExtractor;
     private final VacancyMapper mapper;
     private final VacancyScraper scraper;
+    private final MatchRepository matchRepository;
+    private final AnalysisRepository analysisRepository;
+    private final RecommendationRepository recommendationRepository;
+    private final ApplicationRepository applicationRepository;
+    private final ResumeSessionRepository resumeSessionRepository;
 
     @Transactional
     public VacancyResponse create(Long userId, CreateVacancyRequest request) {
@@ -64,6 +79,7 @@ public class VacancyService {
     public List<VacancyResponse> findByUserId(Long userId) {
         return repository.findByUserIdOrderByCreatedAtDesc(userId)
                 .stream()
+                .filter(v -> !v.isRemoved())
                 .map(this::toResponseWithSkills)
                 .toList();
     }
@@ -102,7 +118,90 @@ public class VacancyService {
     public void delete(Long id, Long userId) {
         Vacancy vacancy = repository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Vacancy not found with id: " + id));
+        cascadeDeleteByVacancyId(id);
         repository.delete(vacancy);
+    }
+
+    @Transactional
+    public void deleteAllByUserId(Long userId) {
+        List<Vacancy> vacancies = repository.findByUserIdOrderByCreatedAtDesc(userId);
+        for (Vacancy vacancy : vacancies) {
+            cascadeDeleteByVacancyId(vacancy.getId());
+        }
+        repository.deleteByUserId(userId);
+    }
+
+    private void cascadeDeleteByVacancyId(Long vacancyId) {
+        vacancySkillRepository.deleteByVacancyId(vacancyId);
+        applicationRepository.deleteByVacancyId(vacancyId);
+        resumeSessionRepository.deleteByVacancyId(vacancyId);
+        List<Match> matches = matchRepository.findByVacancyId(vacancyId);
+        for (Match match : matches) {
+            analysisRepository.deleteByMatchId(match.getId());
+            recommendationRepository.deleteByMatchId(match.getId());
+        }
+        matchRepository.deleteByVacancyId(vacancyId);
+    }
+
+    @Transactional
+    public IngestionOutcome ingestCollected(Long userId, VacancySource source, RawVacancy raw) {
+        String externalId = (raw.externalId() == null || raw.externalId().isBlank())
+                ? raw.url() : raw.externalId();
+        if (externalId == null || externalId.isBlank()) {
+            return IngestionOutcome.UPDATED;
+        }
+
+        Optional<Vacancy> existing = repository.findByUserIdAndSourceAndExternalId(userId, source, externalId);
+        if (existing.isPresent()) {
+            Vacancy v = existing.get();
+            String newDescription = raw.description() == null ? v.getDescription() : raw.description();
+            boolean descriptionChanged = !newDescription.equals(v.getDescription());
+            v.setTitle(raw.title() == null || raw.title().isBlank() ? v.getTitle() : raw.title());
+            v.setDescription(newDescription);
+            v.setCompany(raw.company() == null ? v.getCompany() : raw.company());
+            v.setLocation(raw.location() == null ? v.getLocation() : raw.location());
+            v.setWorkModality(raw.workModality() == null ? v.getWorkModality() : raw.workModality());
+            v.setSalaryRange(raw.salaryRange() == null ? v.getSalaryRange() : raw.salaryRange());
+            v.setUrl(raw.url() == null ? v.getUrl() : raw.url());
+            v.setLastSeenAt(LocalDateTime.now());
+            v.setRemoved(false);
+            repository.save(v);
+            if (descriptionChanged) {
+                vacancySkillRepository.deleteByVacancyId(v.getId());
+                linkExtractedSkills(v.getId(), skillExtractor.extract(v.getDescription()));
+            }
+            return IngestionOutcome.UPDATED;
+        }
+
+        Vacancy v = new Vacancy();
+        v.setUserId(userId);
+        v.setTitle(raw.title() == null || raw.title().isBlank() ? "Vaga" : raw.title());
+        v.setDescription(raw.description() == null ? "" : raw.description());
+        v.setCompany(raw.company());
+        v.setLocation(raw.location());
+        v.setWorkModality(raw.workModality());
+        v.setSalaryRange(raw.salaryRange());
+        v.setUrl(raw.url());
+        v.setSource(source);
+        v.setExternalId(externalId);
+        v.setLastSeenAt(LocalDateTime.now());
+        v.setRemoved(false);
+        Vacancy saved = repository.save(v);
+        linkExtractedSkills(saved.getId(), skillExtractor.extract(saved.getDescription()));
+        return IngestionOutcome.CREATED;
+    }
+
+    @Transactional
+    public void markStale(Long userId, VacancySource source) {
+        LocalDateTime threshold = LocalDateTime.now().minusDays(STALE_DAYS);
+        List<Vacancy> stale = repository.findByUserIdAndSourceAndRemovedFalseAndLastSeenAtBefore(
+                userId, source, threshold);
+        for (Vacancy v : stale) {
+            v.setRemoved(true);
+        }
+        if (!stale.isEmpty()) {
+            repository.saveAll(stale);
+        }
     }
 
     private void linkExtractedSkills(Long vacancyId, List<String> skillNames) {

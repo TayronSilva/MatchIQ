@@ -15,4 +15,8 @@ public interface AnalysisRepository extends JpaRepository<Analysis, Long> {
     Optional<Analysis> findByIdAndUserId(Long id, Long userId);
 
     List<Analysis> findByUserIdOrderByCreatedAtDesc(Long userId);
+
+    void deleteByMatchId(Long matchId);
+
+    void deleteByUserId(Long userId);
 }

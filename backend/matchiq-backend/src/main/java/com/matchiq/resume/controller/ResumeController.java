@@ -59,6 +59,13 @@ public class ResumeController {
         resumeService.delete(id, userId);
     }
 
+    @DeleteMapping
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteAll(Authentication authentication) {
+        Long userId = currentUserId(authentication);
+        resumeService.deleteAllByUserId(userId);
+    }
+
     private Long currentUserId(Authentication authentication) {
         String email = authentication.getName();
         return userRepository.findByEmail(email)

@@ -60,6 +60,12 @@ public class ApplicationController {
         return ResponseEntity.noContent().build();
     }
 
+    @DeleteMapping
+    public ResponseEntity<Void> deleteAll(Authentication authentication) {
+        service.deleteAllByUserId(currentUserId(authentication));
+        return ResponseEntity.noContent().build();
+    }
+
     private Long currentUserId(Authentication authentication) {
         String email = authentication.getName();
         return userRepository.findByEmail(email)
