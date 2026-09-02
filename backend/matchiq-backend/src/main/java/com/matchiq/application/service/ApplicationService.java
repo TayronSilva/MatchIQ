@@ -92,6 +92,11 @@ public class ApplicationService {
         repository.delete(app);
     }
 
+    @Transactional
+    public void deleteAllByUserId(Long userId) {
+        repository.deleteByUserId(userId);
+    }
+
     private LocalDateTime parseDate(String s) {
         if (s == null || s.isBlank()) return null;
         try {
