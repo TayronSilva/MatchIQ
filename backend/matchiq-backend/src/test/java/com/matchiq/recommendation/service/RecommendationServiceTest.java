@@ -64,7 +64,7 @@ class RecommendationServiceTest {
         when(matchRepository.findByIdAndUserId(1L, 1L)).thenReturn(Optional.of(match));
         when(matchMapper.readListForMatch("[\"AWS\"]")).thenReturn(List.of("AWS"));
         when(knowledgeBaseService.gupyGuide()).thenReturn("");
-        when(huggingFaceClient.generate(anyString())).thenReturn("1. Estudar AWS...\n2. Projeto prático");
+        when(huggingFaceClient.chat(anyString(), anyString())).thenReturn("1. Estudar AWS...\n2. Projeto prático");
 
         when(recommendationRepository.findByMatchId(1L)).thenReturn(Optional.empty());
 
@@ -83,7 +83,7 @@ class RecommendationServiceTest {
         RecommendationResponse result = service.generate(1L, 1L);
 
         assertEquals(RecommendationSource.AI, result.getSource());
-        verify(huggingFaceClient).generate(anyString());
+        verify(huggingFaceClient).chat(anyString(), anyString());
     }
 
     @Test
@@ -93,7 +93,7 @@ class RecommendationServiceTest {
         when(matchRepository.findByIdAndUserId(1L, 1L)).thenReturn(Optional.of(match));
         when(matchMapper.readListForMatch("[\"AWS\"]")).thenReturn(List.of("AWS"));
         when(knowledgeBaseService.gupyGuide()).thenReturn("");
-        when(huggingFaceClient.generate(anyString())).thenReturn(null);
+        when(huggingFaceClient.chat(anyString(), anyString())).thenReturn(null);
 
         when(recommendationRepository.findByMatchId(1L)).thenReturn(Optional.empty());
 
@@ -109,8 +109,7 @@ class RecommendationServiceTest {
         RecommendationResponse result = service.generate(1L, 1L);
 
         assertEquals(RecommendationSource.LOCAL, result.getSource());
-        // fallback local gera plano de estudos baseado nas lacunas
-        verify(recommendationRepository).save(argThat(r ->
+        verify(recommendationRepository, atLeastOnce()).save(argThat(r ->
                 r.getStudyPlan() != null && r.getStudyPlan().contains("AWS")));
     }
 
@@ -133,8 +132,8 @@ class RecommendationServiceTest {
 
         service.generate(1L, 1L);
 
-        verify(huggingFaceClient, never()).generate(anyString());
-        verify(recommendationRepository).save(argThat(r -> r.getPriority() == RecommendationPriority.LOW));
+        verify(huggingFaceClient, never()).chat(anyString(), anyString());
+        verify(recommendationRepository, atLeastOnce()).save(argThat(r -> r.getPriority() == RecommendationPriority.LOW));
     }
 
     @Test

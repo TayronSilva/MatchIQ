@@ -1,10 +1,15 @@
 package com.matchiq.vacancy.service;
 
+import com.matchiq.analysis.repository.AnalysisRepository;
+import com.matchiq.application.repository.ApplicationRepository;
 import com.matchiq.common.exception.ResourceNotFoundException;
+import com.matchiq.match.repository.MatchRepository;
 import com.matchiq.profile.domain.WorkModality;
+import com.matchiq.recommendation.repository.RecommendationRepository;
 import com.matchiq.skill.domain.Skill;
 import com.matchiq.skill.repository.SkillRepository;
 import com.matchiq.skill.service.SkillExtractorService;
+import com.matchiq.tailor.repository.ResumeSessionRepository;
 import com.matchiq.vacancy.domain.Vacancy;
 import com.matchiq.vacancy.domain.VacancySkill;
 import com.matchiq.vacancy.domain.VacancySource;
@@ -50,6 +55,21 @@ class VacancyServiceTest {
 
     @Mock
     private VacancyScraper scraper;
+
+    @Mock
+    private MatchRepository matchRepository;
+
+    @Mock
+    private AnalysisRepository analysisRepository;
+
+    @Mock
+    private RecommendationRepository recommendationRepository;
+
+    @Mock
+    private ApplicationRepository applicationRepository;
+
+    @Mock
+    private ResumeSessionRepository resumeSessionRepository;
 
     @InjectMocks
     private VacancyService service;

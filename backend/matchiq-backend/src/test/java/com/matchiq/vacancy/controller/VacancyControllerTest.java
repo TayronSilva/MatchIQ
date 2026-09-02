@@ -5,10 +5,13 @@ import com.matchiq.common.exception.ResourceNotFoundException;
 import com.matchiq.config.JwtAuthenticationFilter;
 import com.matchiq.config.SecurityConfig;
 import com.matchiq.profile.domain.WorkModality;
+import com.matchiq.vacancy.collector.CollectOutcome;
+import com.matchiq.vacancy.collector.CollectorResult;
 import com.matchiq.vacancy.domain.VacancySource;
 import com.matchiq.vacancy.dto.CreateVacancyRequest;
 import com.matchiq.vacancy.dto.UpdateVacancyRequest;
 import com.matchiq.vacancy.dto.VacancyResponse;
+import com.matchiq.vacancy.service.VacancyCollectorService;
 import com.matchiq.vacancy.service.VacancyScrapeException;
 import com.matchiq.vacancy.service.VacancyService;
 import com.matchiq.user.domain.User;
@@ -44,6 +47,9 @@ class VacancyControllerTest {
 
     @MockitoBean
     private VacancyService vacancyService;
+
+    @MockitoBean
+    private VacancyCollectorService vacancyCollectorService;
 
     @MockitoBean
     private UserRepository userRepository;
@@ -193,5 +199,21 @@ class VacancyControllerTest {
                 .andExpect(status().isNoContent());
 
         verify(vacancyService, times(1)).delete(1L, 1L);
+    }
+
+    @Test
+    void collect_shouldReturnResults() throws Exception {
+        mockCurrentUser();
+        CollectOutcome outcome = new CollectOutcome(List.of(
+                CollectorResult.ok(VacancySource.REMOTIVE, 10, 7, 3),
+                CollectorResult.failed(VacancySource.WEWORKREMOTELY, "timeout")), 7, false, 0);
+        when(vacancyCollectorService.collectAll(1L)).thenReturn(outcome);
+
+        mockMvc.perform(post("/api/v1/vacancies/collect").principal(auth()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.newJobs").value(7))
+                .andExpect(jsonPath("$.results[0].source").value("REMOTIVE"))
+                .andExpect(jsonPath("$.results[0].created").value(7))
+                .andExpect(jsonPath("$.results[1].success").value(false));
     }
 }

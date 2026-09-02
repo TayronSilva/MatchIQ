@@ -1,11 +1,16 @@
 package com.matchiq.match.service;
 
+import com.matchiq.analysis.repository.AnalysisRepository;
+import com.matchiq.analysis.service.AnalysisService;
+import com.matchiq.common.ai.AiClient;
 import com.matchiq.common.exception.ResourceNotFoundException;
 import com.matchiq.match.domain.Match;
 import com.matchiq.match.domain.MatchStatus;
 import com.matchiq.match.dto.MatchResponse;
 import com.matchiq.match.mapper.MatchMapper;
 import com.matchiq.match.repository.MatchRepository;
+import com.matchiq.recommendation.repository.RecommendationRepository;
+import com.matchiq.recommendation.service.RecommendationService;
 import com.matchiq.resume.domain.Resume;
 import com.matchiq.resume.repository.ResumeRepository;
 import com.matchiq.skill.domain.ResumeSkill;
@@ -16,6 +21,7 @@ import com.matchiq.vacancy.domain.Vacancy;
 import com.matchiq.vacancy.domain.VacancySkill;
 import com.matchiq.vacancy.repository.VacancyRepository;
 import com.matchiq.vacancy.repository.VacancySkillRepository;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -52,6 +58,24 @@ class MatchServiceTest {
 
     @Mock
     private MatchMapper mapper;
+
+    @Mock
+    private AiClient aiClient;
+
+    @Mock
+    private AnalysisService analysisService;
+
+    @Mock
+    private RecommendationService recommendationService;
+
+    @Mock
+    private AnalysisRepository analysisRepository;
+
+    @Mock
+    private RecommendationRepository recommendationRepository;
+
+    @Mock
+    private ObjectMapper objectMapper;
 
     @InjectMocks
     private MatchService service;

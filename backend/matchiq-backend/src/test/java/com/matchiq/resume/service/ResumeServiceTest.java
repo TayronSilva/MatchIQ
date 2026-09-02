@@ -1,6 +1,9 @@
 package com.matchiq.resume.service;
 
+import com.matchiq.analysis.repository.AnalysisRepository;
 import com.matchiq.common.exception.ResourceNotFoundException;
+import com.matchiq.match.repository.MatchRepository;
+import com.matchiq.recommendation.repository.RecommendationRepository;
 import com.matchiq.resume.domain.ProcessingStatus;
 import com.matchiq.resume.domain.Resume;
 import com.matchiq.resume.dto.ResumeResponse;
@@ -12,6 +15,7 @@ import com.matchiq.skill.domain.Skill;
 import com.matchiq.skill.repository.ResumeSkillRepository;
 import com.matchiq.skill.repository.SkillRepository;
 import com.matchiq.skill.service.SkillExtractorService;
+import com.matchiq.tailor.repository.ResumeSessionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -49,6 +53,18 @@ class ResumeServiceTest {
 
     @Mock
     private ResumeSkillRepository resumeSkillRepository;
+
+    @Mock
+    private MatchRepository matchRepository;
+
+    @Mock
+    private AnalysisRepository analysisRepository;
+
+    @Mock
+    private RecommendationRepository recommendationRepository;
+
+    @Mock
+    private ResumeSessionRepository resumeSessionRepository;
 
     @InjectMocks
     private ResumeService service;

@@ -4,10 +4,14 @@ import com.matchiq.analysis.domain.Analysis;
 import com.matchiq.analysis.dto.AnalysisResponse;
 import com.matchiq.analysis.mapper.AnalysisMapper;
 import com.matchiq.analysis.repository.AnalysisRepository;
+import com.matchiq.common.ai.AiClient;
 import com.matchiq.common.exception.ResourceNotFoundException;
 import com.matchiq.match.domain.Match;
 import com.matchiq.match.mapper.MatchMapper;
 import com.matchiq.match.repository.MatchRepository;
+import com.matchiq.resume.repository.ResumeRepository;
+import com.matchiq.vacancy.repository.VacancyRepository;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -35,6 +39,18 @@ class AnalysisServiceTest {
 
     @Mock
     private MatchMapper matchMapper;
+
+    @Mock
+    private ResumeRepository resumeRepository;
+
+    @Mock
+    private VacancyRepository vacancyRepository;
+
+    @Mock
+    private AiClient aiClient;
+
+    @Mock
+    private ObjectMapper objectMapper;
 
     @InjectMocks
     private AnalysisService service;
@@ -74,7 +90,7 @@ class AnalysisServiceTest {
         assertNotNull(result);
         assertEquals(75, result.getScore());
         // as observações devem ser geradas
-        verify(analysisRepository).save(argThat(a -> a.getObservations() != null && !a.getObservations().isBlank()));
+        verify(analysisRepository, atLeastOnce()).save(argThat(a -> a.getObservations() != null && !a.getObservations().isBlank()));
     }
 
     @Test
@@ -98,7 +114,7 @@ class AnalysisServiceTest {
         existing.setUserId(1L);
         existing.setMatchId(1L);
         when(analysisRepository.findByMatchId(1L)).thenReturn(Optional.of(existing));
-        when(analysisRepository.save(existing)).thenReturn(existing);
+        when(analysisRepository.save(any(Analysis.class))).thenReturn(existing);
 
         AnalysisResponse response = new AnalysisResponse();
         response.setScore(90);
@@ -107,7 +123,7 @@ class AnalysisServiceTest {
         AnalysisResponse result = service.generate(1L, 1L);
 
         assertEquals(90, result.getScore());
-        verify(analysisRepository).save(existing);
+        verify(analysisRepository, atLeastOnce()).save(existing);
     }
 
     @Test
