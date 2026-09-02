@@ -1,6 +1,10 @@
 .commandcode/
 LOCAL_GUIDE.md
 
+# IDE
+.idea/
+*.iml
+
 # Local logs and run artifacts
 *.log
 *.err
