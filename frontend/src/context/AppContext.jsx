@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import { api as apiCall, apiUpload, apiDownload } from '../lib/api'
 
-const API = import.meta.env.VITE_API_URL || '/api'
 const AppCtx = createContext(null)
 
 export function useApp() {
@@ -34,26 +34,7 @@ export function AppProvider({ children }) {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
-  async function api(path, options = {}) {
-    const res = await fetch(API + path, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...(options.headers || {})
-      }
-    })
-    if (!res.ok) {
-      let msg = 'Erro ' + res.status
-      try {
-        const body = await res.json()
-        if (body.message) msg = body.message
-      } catch (e) { /* ignore */ }
-      throw new Error(msg)
-    }
-    if (res.status === 204) return null
-    return res.json()
-  }
+  const api = useCallback((path, options = {}) => apiCall(path, options), [])
 
   function showError(e) {
     setError(e.message || 'Algo deu errado')
@@ -66,11 +47,7 @@ export function AppProvider({ children }) {
 
   async function loadResumes() {
     let list = null
-    try {
-      list = await api('/v1/resumes')
-    } catch (e) {
-      list = null
-    }
+    try { list = await api('/v1/resumes') } catch { list = null }
     if (list === null) return
     setResumes(list || [])
     const savedId = localStorage.getItem('mqi_resumeId')
@@ -105,10 +82,7 @@ export function AppProvider({ children }) {
     const password = e.target.password.value
     setError('')
     try {
-      const data = await api('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ email, password })
-      })
+      const data = await api('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) })
       localStorage.setItem('token', data.token)
       setToken(data.token)
       await Promise.all([loadResumes(), loadDashboard()])
@@ -154,7 +128,7 @@ export function AppProvider({ children }) {
         setVacancies(map)
         localStorage.setItem('mqi_vacancies', JSON.stringify(map))
       }
-    } catch (e) { /* mantém o cache local */ }
+    } catch {}
     finally { setDashboardLoading(false) }
   }
 
@@ -178,13 +152,7 @@ export function AppProvider({ children }) {
     try {
       const form = new FormData()
       form.append('file', file)
-      const res = await fetch(API + '/v1/resumes?language=' + encodeURIComponent(language), {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: form
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.message || 'Erro no upload')
+      const data = await apiUpload('/v1/resumes?language=' + encodeURIComponent(language), form)
       const name = data.fileName || data.originalName || file.name
       setResumeId(String(data.id))
       setResumeName(name)
@@ -221,11 +189,11 @@ export function AppProvider({ children }) {
         setVacancyNeedsInfo(false)
         setVacancyId(data.id)
         localStorage.setItem('mqi_vacancyId', String(data.id))
-        setVacancyHint('✅ Vaga adicionada! Agora clique em "Analisar".')
+        setVacancyHint('Vaga adicionada! Agora clique em "Analisar".')
       }
     } catch (err) {
       setVacancyNeedsInfo(false)
-      setVacancyHint('Alguns sites (como o Indeed) não permitem ler a vaga pelo link. Sem problema: abra a vaga no navegador, copie o título e a descrição e use a aba "Colar texto".')
+      setVacancyHint('Alguns sites não permitem ler a vaga pelo link. Abra a vaga no navegador, copie o título e a descrição e use a aba "Colar texto".')
       showError(err)
     } finally { setLoading(false) }
   }
@@ -246,7 +214,7 @@ export function AppProvider({ children }) {
       setVacancyNeedsInfo(false)
       setVacancyId(data.id)
       localStorage.setItem('mqi_vacancyId', String(data.id))
-      setVacancyHint('✅ Vaga salva! Agora clique em "Analisar".')
+      setVacancyHint('Vaga salva! Agora clique em "Analisar".')
     } catch (err) { showError(err) } finally { setLoading(false) }
   }
 
@@ -278,16 +246,13 @@ export function AppProvider({ children }) {
     setLoading(true)
     setError('')
     try {
-      const match = await api(`/v1/matches/calculate?resumeId=${resumeId}&vacancyId=${vid}`, { method: 'POST' })
-      return match
+      return await api(`/v1/matches/calculate?resumeId=${resumeId}&vacancyId=${vid}`, { method: 'POST' })
     } catch (err) { showError(err); return null }
     finally { setLoading(false) }
   }
 
   async function deleteMatch(id) {
-    try {
-      await api(`/v1/matches/${id}`, { method: 'DELETE' })
-    } catch (err) { showError(err) }
+    try { await api(`/v1/matches/${id}`, { method: 'DELETE' }) } catch (err) { showError(err) }
     const next = matches.filter(m => m.id !== id)
     setMatches(next)
     localStorage.setItem('mqi_matches', JSON.stringify(next))
@@ -296,28 +261,19 @@ export function AppProvider({ children }) {
 
   async function clearMatches() {
     if (!window.confirm('Limpar todo o ranking? Isso remove todos os matches testados.')) return
-    try {
-      await api('/v1/matches', { method: 'DELETE' })
-    } catch (err) { showError(err) }
+    try { await api('/v1/matches', { method: 'DELETE' }) } catch (err) { showError(err) }
     setMatches([])
     localStorage.setItem('mqi_matches', JSON.stringify([]))
     showSuccess('Ranking limpo.')
   }
 
   async function loadTailorList() {
-    try {
-      const list = await api('/v1/tailor')
-      setTailorList(list || [])
-    } catch (e) { /* ignora */ }
+    try { const list = await api('/v1/tailor'); setTailorList(list || []) } catch {}
   }
 
   async function downloadTailoredPdf(id) {
     try {
-      const res = await fetch(API + '/v1/tailor/' + id + '/pdf', {
-        headers: token ? { Authorization: `Bearer ${token}` } : {}
-      })
-      if (!res.ok) { showError('Falha ao baixar o PDF.'); return }
-      const blob = await res.blob()
+      const blob = await apiDownload('/v1/tailor/' + id + '/pdf')
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
@@ -333,7 +289,7 @@ export function AppProvider({ children }) {
       const arr = list || []
       setApplications(arr)
       setAppsByVacancy(Object.fromEntries(arr.map(a => [a.vacancyId, a])))
-    } catch (e) { /* ignora */ }
+    } catch {}
   }
 
   async function createApplication(vacancyId, resumeId, matchId) {
@@ -351,10 +307,7 @@ export function AppProvider({ children }) {
 
   async function updateApplication(id, patch) {
     try {
-      const u = await api('/v1/applications/' + id, {
-        method: 'PUT',
-        body: JSON.stringify(patch)
-      })
+      const u = await api('/v1/applications/' + id, { method: 'PUT', body: JSON.stringify(patch) })
       setApplications(prev => prev.map(a => a.id === id ? u : a))
       if (u.vacancyId) setAppsByVacancy(prev => ({ ...prev, [u.vacancyId]: u }))
     } catch (e) { showError(e) }

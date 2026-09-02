@@ -25,7 +25,7 @@ export default function Cvs() {
       </div>
 
       {tailorList.length === 0 ? (
-        <div className="empty">Nenhum currículo gerado ainda. Vá em <Link to="/vagas">Vagas</Link>, analise uma vaga e clique em "Gerar CV tailor-made".</div>
+        <div className="empty" data-icon="📄">Nenhum currículo gerado ainda. Vá em <Link to="/vagas">Vagas</Link>, analise uma vaga e clique em "Gerar CV tailor-made".</div>
       ) : (
         <div className="rank-list">
           {tailorList.map(t => (

@@ -15,7 +15,7 @@ export default function Applications() {
       </div>
 
       {applications.length === 0 ? (
-        <div className="empty">Nenhuma candidatura registrada ainda. Marque "que apliquei" no detalhe de uma vaga.</div>
+        <div className="empty" data-icon="📮">Nenhuma candidatura registrada ainda. Marque "que apliquei" no detalhe de uma vaga.</div>
       ) : (
         <div className="rank-list">
           {applications.map(a => {

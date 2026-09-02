@@ -1,6 +1,7 @@
 import React from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
+import { RankSkeleton, StatsSkeleton } from '../components/LoadingSkeleton'
 import { scoreColor, scoreLabel, statusLabel } from '../lib/helpers'
 
 export default function Dashboard() {
@@ -9,7 +10,7 @@ export default function Dashboard() {
     handleUploadResume, selectResume, deleteResume,
     matches, vacancies, dashboardLoading,
     tailorList, applications, appsByVacancy,
-    downloadTailoredPdf, createApplication, deleteMatch, clearMatches, updateApplication,
+    downloadTailoredPdf, createApplication, deleteMatch, clearMatches,
     error, success
   } = useApp()
   const navigate = useNavigate()
@@ -22,15 +23,19 @@ export default function Dashboard() {
   return (
     <div className="page">
       <div className="hero rise">
-        <h1>Bem-vindo ao MatchIQ 💡</h1>
+        <h1>Bem-vindo ao MatchIQ</h1>
         <p>Veja o quanto seu currículo combina com a vaga dos sonhos — e o que estudar para chegar lá.</p>
       </div>
 
-      <div className="stat-grid">
-        <div className="stat"><div className="stat-num">{matches.length}</div><div className="stat-lbl">matches</div></div>
-        <div className="stat"><div className="stat-num">{best}%</div><div className="stat-lbl">melhor score</div></div>
-        <div className="stat"><div className="stat-num">{avg}%</div><div className="stat-lbl">score médio</div></div>
-      </div>
+      {dashboardLoading ? (
+        <StatsSkeleton />
+      ) : (
+        <div className="stat-grid">
+          <div className="stat"><div className="stat-num">{matches.length}</div><div className="stat-lbl">matches</div></div>
+          <div className="stat"><div className="stat-num">{best}%</div><div className="stat-lbl">melhor score</div></div>
+          <div className="stat"><div className="stat-num">{avg}%</div><div className="stat-lbl">score médio</div></div>
+        </div>
+      )}
 
       {/* Currículo */}
       <div className="card rise">
@@ -63,7 +68,7 @@ export default function Dashboard() {
             )}
           </>
         ) : (
-          <p className="hint">Nenhum currículo enviado ainda. Envie um PDF ou Word para começar.</p>
+          <div className="empty" data-icon="📄">Nenhum currículo enviado ainda. Envie um PDF ou Word para começar.</div>
         )}
 
         {(!resumeId || showUpload) && (
@@ -98,9 +103,9 @@ export default function Dashboard() {
       </div>
 
       {dashboardLoading ? (
-        <p className="hint">Carregando…</p>
+        <RankSkeleton />
       ) : ranked.length === 0 ? (
-        <div className="empty">Nenhum match ainda. Vá em <Link to="/vagas">Vagas</Link> e faça seu primeiro! 🚀</div>
+        <div className="empty" data-icon="🚀">Nenhum match ainda. Vá em <Link to="/vagas">Vagas</Link> e faça seu primeiro!</div>
       ) : (
         <div className="rank-list">
           {ranked.map((m, i) => (
@@ -147,7 +152,7 @@ export default function Dashboard() {
         <Link to="/cvs" className="btn-soft">Ver todos</Link>
       </div>
       {tailorList.length === 0 ? (
-        <div className="empty">Nenhum currículo gerado ainda.</div>
+        <div className="empty" data-icon="📄">Nenhum currículo gerado ainda.</div>
       ) : (
         <div className="rank-list">
           {tailorList.slice(0, 3).map(t => (
@@ -171,7 +176,7 @@ export default function Dashboard() {
         <Link to="/candidaturas" className="btn-soft">Ver todas</Link>
       </div>
       {applications.length === 0 ? (
-        <div className="empty">Nenhuma candidatura registrada ainda.</div>
+        <div className="empty" data-icon="📮">Nenhuma candidatura registrada ainda.</div>
       ) : (
         <div className="rank-list">
           {applications.slice(0, 3).map(a => {

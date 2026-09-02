@@ -93,7 +93,7 @@ export default function Vagas() {
         <h2>📋 Vagas cadastradas ({list.length})</h2>
       </div>
       {list.length === 0 ? (
-        <div className="empty">Nenhuma vaga ainda. Adicione a primeira acima. 🚀</div>
+        <div className="empty" data-icon="🔍">Nenhuma vaga ainda. Adicione a primeira acima.</div>
       ) : (
         <div className="rank-list">
           {list.map(v => (
