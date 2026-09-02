@@ -2,19 +2,24 @@ package com.matchiq.vacancy.controller;
 
 import com.matchiq.common.exception.ResourceNotFoundException;
 import com.matchiq.user.repository.UserRepository;
+import com.matchiq.vacancy.collector.CollectOutcome;
+import com.matchiq.vacancy.collector.CollectorResult;
 import com.matchiq.vacancy.dto.CreateVacancyRequest;
 import com.matchiq.vacancy.dto.UpdateVacancyRequest;
 import com.matchiq.vacancy.dto.VacancyResponse;
+import com.matchiq.vacancy.service.VacancyCollectorService;
 import com.matchiq.vacancy.service.VacancyService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/vacancies")
@@ -22,6 +27,7 @@ import java.util.List;
 public class VacancyController {
 
     private final VacancyService vacancyService;
+    private final VacancyCollectorService vacancyCollectorService;
     private final UserRepository userRepository;
 
     @PostMapping
@@ -44,6 +50,25 @@ public class VacancyController {
     public List<VacancyResponse> list(Authentication authentication) {
         Long userId = currentUserId(authentication);
         return vacancyService.findByUserId(userId);
+    }
+
+    @PostMapping("/collect")
+    public ResponseEntity<?> collect(Authentication authentication) {
+        Long userId = currentUserId(authentication);
+        CollectOutcome outcome = vacancyCollectorService.collectAll(userId);
+
+        if (outcome.cooldownActive()) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body(Map.of(
+                            "message", "Cooldown ativo. Tente novamente em " + outcome.cooldownRemainingMinutes() + " minutos.",
+                            "cooldownRemainingMinutes", outcome.cooldownRemainingMinutes()
+                    ));
+        }
+
+        return ResponseEntity.ok(Map.of(
+                "results", outcome.results(),
+                "newJobs", outcome.newJobs()
+        ));
     }
 
     @GetMapping("/{id}")
@@ -73,6 +98,13 @@ public class VacancyController {
     public void delete(Authentication authentication, @PathVariable Long id) {
         Long userId = currentUserId(authentication);
         vacancyService.delete(id, userId);
+    }
+
+    @DeleteMapping
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteAll(Authentication authentication) {
+        Long userId = currentUserId(authentication);
+        vacancyService.deleteAllByUserId(userId);
     }
 
     private Long currentUserId(Authentication authentication) {

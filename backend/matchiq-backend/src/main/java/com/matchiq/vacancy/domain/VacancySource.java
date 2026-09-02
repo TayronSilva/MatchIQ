@@ -2,5 +2,11 @@ package com.matchiq.vacancy.domain;
 
 public enum VacancySource {
     MANUAL,
-    URL
+    URL,
+    REMOTIVE,
+    REMOTEOK,
+    ARBEITNOW,
+    HIMALAYAS,
+    WEWORKREMOTELY,
+    VAGASBR
 }

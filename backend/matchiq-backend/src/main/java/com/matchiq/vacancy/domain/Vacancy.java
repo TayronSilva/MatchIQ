@@ -52,6 +52,15 @@ public class Vacancy {
     @Column(nullable = false)
     private boolean favorite;
 
+    @Column(name = "external_id")
+    private String externalId;
+
+    @Column(name = "last_seen_at")
+    private LocalDateTime lastSeenAt;
+
+    @Column(name = "removed", nullable = false)
+    private boolean removed = false;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

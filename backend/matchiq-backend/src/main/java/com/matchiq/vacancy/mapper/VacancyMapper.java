@@ -50,6 +50,7 @@ public class VacancyMapper {
         response.setUrl(vacancy.getUrl());
         response.setSource(vacancy.getSource());
         response.setFavorite(vacancy.isFavorite());
+        response.setRemoved(vacancy.isRemoved());
         response.setSkills(skills);
         response.setCreatedAt(vacancy.getCreatedAt());
         response.setUpdatedAt(vacancy.getUpdatedAt());

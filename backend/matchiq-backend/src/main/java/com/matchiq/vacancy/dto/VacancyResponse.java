@@ -38,6 +38,8 @@ public class VacancyResponse {
 
     private boolean favorite;
 
+    private boolean removed;
+
     private boolean needsMoreInfo;
 
     private List<VacancySkillResponse> skills;
