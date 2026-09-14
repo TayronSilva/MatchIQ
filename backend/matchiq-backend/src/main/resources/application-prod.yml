@@ -1,9 +1,29 @@
 server:
-  port: 8080
+  port: ${PORT:8080}
 
 spring:
   application:
     name: matchiq-backend
+
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME:}
+    password: ${DATABASE_PASSWORD:}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
 
 api:
   security:
@@ -13,6 +33,19 @@ api:
   huggingface:
     api-key: ${HUGGINGFACE_API_KEY:}
     model: ${HUGGINGFACE_MODEL:deepseek-ai/DeepSeek-V4-Flash-0731:baseten}
+  groq:
+    api-key: ${GROQ_API_KEY:}
+    model: ${GROQ_MODEL:openai/gpt-oss-20b}
+  supabase:
+    url: ${SUPABASE_URL:}
+    service-key: ${SUPABASE_SERVICE_KEY:}
+    bucket: ${SUPABASE_BUCKET:avatars}
+
+matchiq:
+  collection:
+    cooldown-minutes: 45
+    interval-hours: 6
+    initial-delay-minutes: 5
 
 logging:
   level:
