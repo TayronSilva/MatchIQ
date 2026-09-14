@@ -10,7 +10,7 @@ export default function VacancyDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { api, resumeId, vacancies, appsByVacancy, createApplication, updateApplication, shareLinkedIn,
-    downloadTailoredPdf, showError, showSuccess, loadTailorList, error, success } = useApp()
+    downloadTailoredPdf, showError, showSuccess, loadTailorList, deleteMatch, error, success } = useApp()
 
   const [matchResult, setMatchResult] = useState(null)
   const [genStuck, setGenStuck] = useState(false)
@@ -238,7 +238,14 @@ export default function VacancyDetail() {
         )}
       </div>
 
-      <button className="btn" onClick={() => navigate('/')}>← Voltar ao dashboard</button>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <button className="btn" onClick={() => navigate('/')}>← Voltar ao dashboard</button>
+        <button className="btn-soft" style={{ color: '#dc3545', borderColor: '#dc3545' }} onClick={() => {
+          if (window.confirm('Excluir este match e todas as análises?')) {
+            deleteMatch(match.id).then(() => navigate('/'))
+          }
+        }}>🗑 Excluir match</button>
+      </div>
       {error && <div className="banner error">{error}</div>}
       {success && <div className="banner success">{success}</div>}
     </div>

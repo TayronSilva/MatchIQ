@@ -33,7 +33,11 @@ public class RecommendationService {
     private final KnowledgeBaseService knowledgeBaseService;
 
     private static final String RECOMMENDATION_SYSTEM =
-            "Você é um mentor de carreira para desenvolvedores. Gere um plano de estudos prático, objetivo e conciso em português.";
+            "Você é um mentor de carreira sênior para desenvolvedores de tecnologia brasileiros. " +
+            "Gere um plano de estudos prático, objetivo e conciso em português. " +
+            "Use linguagem direta, sem enrolação. Cada tópico deve ter nome da skill, " +
+            "por que é importante para a vaga, e 1 recurso prático (curso, projeto ou documento oficial). " +
+            "Maximo 5 topicos. Nao invente skills que nao estejam na lista de ausentes.";
 
     @Transactional
     public RecommendationResponse generate(Long userId, Long matchId) {
@@ -47,7 +51,11 @@ public class RecommendationService {
         RecommendationSource source = RecommendationSource.LOCAL;
 
         if (!gaps.isEmpty()) {
-            aiStudyPlan = aiClient.chat(RECOMMENDATION_SYSTEM, buildPrompt(gaps));
+            try {
+                aiStudyPlan = aiClient.chat(RECOMMENDATION_SYSTEM, buildPrompt(gaps));
+            } catch (Exception e) {
+                log.warn("AI call for study plan failed for match {}: {}", matchId, e.getMessage());
+            }
             if (aiStudyPlan != null && !aiStudyPlan.isBlank()) {
                 source = RecommendationSource.AI;
             }
@@ -120,12 +128,15 @@ public class RecommendationService {
         if (gaps.isEmpty()) {
             return "Nenhum plano de estudos necessário: você já domina as skills exigidas.";
         }
-        StringBuilder sb = new StringBuilder("Plano de estudos sugerido (ordem recomendada):\n");
+        StringBuilder sb = new StringBuilder("## Plano de Estudos\n\n");
         int i = 1;
         for (String gap : gaps) {
-            sb.append(i++).append(". Estudar ").append(gap).append(" — comece com fundamentos, depois pratique com projetos.\n");
+            sb.append("### ").append(i++).append(". ").append(gap).append("\n");
+            sb.append("**Por que é importante:** Skill exigida pela vaga e ausente no seu currículo.\n\n");
+            sb.append("**Como estudar:** Estude os fundamentos, depois crie um projeto prático para portfólio.\n\n");
         }
-        sb.append("Dica: crie um projeto de portfólio combinando as skills acima para comprovar na prática.");
+        sb.append("---\n\n");
+        sb.append("**Dica:** Crie um projeto no GitHub combinando essas skills para demonstrar na prática.");
         return sb.toString();
     }
 
@@ -133,17 +144,25 @@ public class RecommendationService {
         String gupyGuide = knowledgeBaseService.gupyGuide();
         String knowledgeContext = gupyGuide.isBlank()
                 ? ""
-                : "\n\nUse este guia como referência para deixar o plano alinhado ao que a IA da Gupy valoriza em 2026:\n" + gupyGuide;
+                : "\n\nGuia Gupy para referencia:\n" + gupyGuide;
 
         return """
-                Com base nas skills ausentes no currículo do candidato, gere um plano de estudos CURTO e prático em português.
+                Gere um plano de estudos para um desenvolvedor que precisa dominar as seguintes skills para uma vaga:
+
                 Skills ausentes: %s
 
-                Regras obrigatórias:
-                - No máximo 5 tópicos, um por skill em falta.
-                - Cada tópico: 1 linha de foco + no máximo 1 recurso (nome ou link curto).
-                - Nunca deixe frases pela metade; termine sempre com ponto final.
-                - Sem introduções, nem resumo final longo.%s
+                Formato obrigatório (em Markdown):
+                ## Plano de Estudos
+                ### 1. [Nome da Skill]
+                **Por que é importante:** 1 frase explicando a relevância para a vaga.
+                **Como estudar:** 1-2 frases com recurso prático (curso, projeto, ou doc oficial).
+
+                (repita para cada skill, maximo 5)
+
+                Regras:
+                - Seja direto e pratico. Sem textao introdutorio.
+                - Cada topico deve ter no maximo 3 linhas.
+                - Termine com uma dica final curta sobre portfolio.%s
                 """.formatted(String.join(", ", gaps), knowledgeContext);
     }
 

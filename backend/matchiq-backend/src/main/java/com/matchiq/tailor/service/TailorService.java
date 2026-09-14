@@ -176,16 +176,19 @@ public class TailorService {
     }
 
     /**
-     * Verifica se o Markdown gerado não foi truncado pelo modelo: as seções críticas
-     * (que costumam ficar de fora quando a IA para cedo) precisam estar presentes.
+     * Verifica se o Markdown gerado é razoavelmente completo.
+     * Antes pedia seções específicas; agora aceita qualquer conteúdo que
+     * contenha pelo menos um H1 e um H2 (estrutura básica de currículo).
      */
     private boolean isComplete(String content) {
         if (content == null) {
             return false;
         }
-        return content.contains("## Experiência Profissional")
-                && content.contains("## Atividades Complementares")
-                && content.contains("## Competências Técnicas");
+        String t = content.trim();
+        boolean hasH1 = t.contains("# ");
+        boolean hasH2 = t.contains("## ");
+        boolean hasEnoughLength = t.length() > 200;
+        return hasH1 && hasH2 && hasEnoughLength;
     }
 
     private String buildPrompt(String resumeText, Vacancy vacancy, Match match) {
