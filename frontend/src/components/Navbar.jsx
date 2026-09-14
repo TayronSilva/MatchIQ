@@ -1,9 +1,11 @@
 import React, { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
+import { useTheme } from '../context/ThemeContext'
 
 export default function Navbar() {
   const { handleLogout, resumeName } = useApp()
+  const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -30,6 +32,9 @@ export default function Navbar() {
 
       <div className={'nav-right' + (menuOpen ? ' open' : '')}>
         {resumeName && <span className="nav-resume">📄 {resumeName}</span>}
+        <button className="btn-ghost theme-toggle" onClick={toggleTheme} title="Alternar tema">
+          {theme === 'light' ? '🌙' : '☀️'}
+        </button>
         <button className="btn-ghost" onClick={() => { handleLogout(); setMenuOpen(false) }}>Sair</button>
       </div>
     </header>

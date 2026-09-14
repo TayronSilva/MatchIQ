@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
+import { useTheme } from '../context/ThemeContext'
 
 export default function Login() {
   const { token, handleLogin, handleRegister, error, success } = useApp()
+  const { theme, toggleTheme } = useTheme()
   const [authTab, setAuthTab] = useState('login')
   const navigate = useNavigate()
 
@@ -13,6 +15,9 @@ export default function Login() {
 
   return (
     <div className="auth">
+      <button className="btn-ghost theme-toggle" onClick={toggleTheme} title="Alternar tema" style={{ position: 'absolute', top: 18, right: 18 }}>
+        {theme === 'light' ? '🌙' : '☀️'}
+      </button>
       <div className="auth-brand">
         <div className="logo">🎯</div>
         <h1>MatchIQ</h1>
