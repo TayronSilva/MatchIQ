@@ -24,3 +24,9 @@ api:
     url: ${SUPABASE_URL:}
     service-key: ${SUPABASE_SERVICE_KEY:}
     bucket: ${SUPABASE_BUCKET:avatars}
+
+matchiq:
+  collection:
+    cooldown-minutes: 45
+    interval-hours: 6
+    initial-delay-minutes: 5

@@ -71,6 +71,15 @@ public class VacancyController {
         ));
     }
 
+    @GetMapping("/collect/status")
+    public ResponseEntity<?> collectStatus() {
+        return ResponseEntity.ok(Map.of(
+                "cooldownMinutes", 45,
+                "intervalHours", 6,
+                "info", "Coleta automática roda a cada 6 horas. POST /api/v1/vacancies/collect para coleta manual."
+        ));
+    }
+
     @GetMapping("/{id}")
     public VacancyResponse findById(Authentication authentication, @PathVariable Long id) {
         Long userId = currentUserId(authentication);
