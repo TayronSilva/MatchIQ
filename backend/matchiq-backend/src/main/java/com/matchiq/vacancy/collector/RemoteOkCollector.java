@@ -2,18 +2,16 @@ package com.matchiq.vacancy.collector;
 
 import com.matchiq.profile.domain.WorkModality;
 import com.matchiq.vacancy.domain.VacancySource;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.JsonNode;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
-/**
- * RemoteOK public JSON feed (https://remoteok.com/api).
- * O primeiro elemento do array é metadados; as vagas começam no índice 1.
- * Cada vaga traz a descrição completa em HTML. Máx. ~100 vagas mais recentes.
- */
 @Service
+@Order(10)
 public class RemoteOkCollector implements JobBoardCollector {
 
     private final String url;
@@ -33,8 +31,21 @@ public class RemoteOkCollector implements JobBoardCollector {
 
     @Override
     public List<RawVacancy> collect(PoliteHttpClient http) throws Exception {
+        return fetchJobs(http, url);
+    }
+
+    @Override
+    public List<RawVacancy> collect(PoliteHttpClient http, List<String> keywords) throws Exception {
+        List<RawVacancy> all = fetchJobs(http, url);
+        if (keywords == null || keywords.isEmpty()) {
+            return all;
+        }
+        return filterByKeywords(all, keywords);
+    }
+
+    private List<RawVacancy> fetchJobs(PoliteHttpClient http, String apiUrl) throws Exception {
         List<RawVacancy> out = new ArrayList<>();
-        String body = http.get(url);
+        String body = http.get(apiUrl);
         JsonNode root = CollectorSupport.mapper().readTree(body);
         if (!root.isArray()) {
             return out;
@@ -53,5 +64,23 @@ public class RemoteOkCollector implements JobBoardCollector {
                     WorkModality.REMOTE, salary, CollectorSupport.parseIso(CollectorSupport.str(j, "date"))));
         }
         return out;
+    }
+
+    private List<RawVacancy> filterByKeywords(List<RawVacancy> vacancies, List<String> keywords) {
+        List<String> lowerKeywords = keywords.stream().map(String::toLowerCase).toList();
+        List<RawVacancy> matched = new ArrayList<>();
+        List<RawVacancy> rest = new ArrayList<>();
+        for (RawVacancy v : vacancies) {
+            String text = ((v.title() != null ? v.title() : "") + " " +
+                    (v.description() != null ? v.description() : "")).toLowerCase();
+            boolean matches = lowerKeywords.stream().anyMatch(text::contains);
+            if (matches) {
+                matched.add(v);
+            } else {
+                rest.add(v);
+            }
+        }
+        matched.addAll(rest);
+        return matched;
     }
 }

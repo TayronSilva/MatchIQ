@@ -2,27 +2,25 @@ package com.matchiq.vacancy.collector;
 
 import com.matchiq.profile.domain.WorkModality;
 import com.matchiq.vacancy.domain.VacancySource;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.JsonNode;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Himalayas remote jobs API (https://himalayas.app/jobs/api).
- * Vagas remotas; a resposta traz "excerpt" (primeiros parágrafos) como descrição.
- */
 @Service
+@Order(10)
 public class HimalayasCollector implements JobBoardCollector {
 
-    private final String url;
+    private final String baseUrl;
 
     public HimalayasCollector() {
-        this("https://himalayas.app/jobs/api?limit=20");
+        this("https://himalayas.app/jobs/api");
     }
 
-    public HimalayasCollector(String url) {
-        this.url = url;
+    public HimalayasCollector(String baseUrl) {
+        this.baseUrl = baseUrl;
     }
 
     @Override
@@ -32,6 +30,26 @@ public class HimalayasCollector implements JobBoardCollector {
 
     @Override
     public List<RawVacancy> collect(PoliteHttpClient http) throws Exception {
+        return fetchJobs(http, baseUrl + "?limit=20");
+    }
+
+    @Override
+    public List<RawVacancy> collect(PoliteHttpClient http, List<String> keywords) throws Exception {
+        if (keywords == null || keywords.isEmpty()) {
+            return collect(http);
+        }
+        List<RawVacancy> all = new ArrayList<>();
+        for (String keyword : keywords) {
+            try {
+                String url = baseUrl + "?limit=20&search=" + java.net.URLEncoder.encode(keyword, "UTF-8");
+                all.addAll(fetchJobs(http, url));
+            } catch (Exception ignored) {
+            }
+        }
+        return deduplicate(all);
+    }
+
+    private List<RawVacancy> fetchJobs(PoliteHttpClient http, String url) throws Exception {
         List<RawVacancy> out = new ArrayList<>();
         String body = http.get(url);
         JsonNode root = CollectorSupport.mapper().readTree(body);
@@ -57,6 +75,18 @@ public class HimalayasCollector implements JobBoardCollector {
             Long pubDate = j.has("pubDate") ? j.get("pubDate").asLong() : null;
             out.add(new RawVacancy(id, title, company, description, u, null,
                     WorkModality.REMOTE, salary, CollectorSupport.fromEpochSeconds(pubDate)));
+        }
+        return out;
+    }
+
+    private List<RawVacancy> deduplicate(List<RawVacancy> vacancies) {
+        List<RawVacancy> out = new ArrayList<>();
+        java.util.Set<String> seen = new java.util.HashSet<>();
+        for (RawVacancy v : vacancies) {
+            String key = v.externalId() != null ? v.externalId() : v.url();
+            if (key != null && seen.add(key)) {
+                out.add(v);
+            }
         }
         return out;
     }

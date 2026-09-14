@@ -10,6 +10,7 @@ import com.matchiq.vacancy.collector.CollectorResult;
 import com.matchiq.vacancy.collector.JobBoardCollector;
 import com.matchiq.vacancy.collector.PoliteHttpClient;
 import com.matchiq.vacancy.collector.RawVacancy;
+import com.matchiq.vacancy.collector.SkillToRepoMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,6 +31,8 @@ public class VacancyCollectorService {
 
     private static final long MIN_INTERVAL_MILLIS = 1500;
     private static final int MAX_TOTAL = 15;
+    private static final int MAX_PER_SOURCE = 5;
+    private static final int MIN_RELEVANCE_SCORE = 10;
 
     @Value("${matchiq.collection.cooldown-minutes:45}")
     private long cooldownMinutes;
@@ -56,6 +59,9 @@ public class VacancyCollectorService {
 
         Set<String> userSkillNames = loadUserSkillNames(userId);
         boolean hasResume = !userSkillNames.isEmpty();
+        List<String> searchKeywords = SkillToRepoMapper.searchKeywordsForSkills(userSkillNames);
+
+        log.info("Coletando para usuario {} com skills: {}, keywords: {}", userId, userSkillNames, searchKeywords);
 
         AtomicInteger totalIngested = new AtomicInteger(0);
         List<CollectorResult> results = new ArrayList<>();
@@ -63,7 +69,7 @@ public class VacancyCollectorService {
             if (totalIngested.get() >= MAX_TOTAL) {
                 break;
             }
-            results.add(collectOne(userId, collector, totalIngested, userSkillNames, hasResume));
+            results.add(collectOne(userId, collector, totalIngested, userSkillNames, searchKeywords, hasResume));
         }
 
         lastCollectionAt.put(userId, Instant.now());
@@ -72,26 +78,45 @@ public class VacancyCollectorService {
 
     private CollectorResult collectOne(Long userId, JobBoardCollector collector,
                                       AtomicInteger totalIngested,
-                                      Set<String> userSkillNames, boolean hasResume) {
+                                      Set<String> userSkillNames,
+                                      List<String> searchKeywords,
+                                      boolean hasResume) {
         PoliteHttpClient http = new PoliteHttpClient(MIN_INTERVAL_MILLIS);
+        AtomicInteger sourceIngested = new AtomicInteger(0);
         try {
-            List<RawVacancy> raw = collector.collect(http);
+            List<RawVacancy> raw = collector.collect(http, searchKeywords);
             int created = 0;
             int updated = 0;
             int skipped = 0;
+
+            List<RawVacancy> scored = new ArrayList<>();
             for (RawVacancy r : raw) {
-                if (totalIngested.get() >= MAX_TOTAL) {
+                int relevance = hasResume
+                        ? SkillToRepoMapper.computeRelevanceScore(r.title(), r.description(), userSkillNames)
+                        : 1;
+                if (hasResume && relevance < MIN_RELEVANCE_SCORE) {
+                    skipped++;
+                    continue;
+                }
+                scored.add(r);
+            }
+
+            scored.sort((a, b) -> {
+                int sa = SkillToRepoMapper.computeRelevanceScore(a.title(), a.description(), userSkillNames);
+                int sb = SkillToRepoMapper.computeRelevanceScore(b.title(), b.description(), userSkillNames);
+                return Integer.compare(sb, sa);
+            });
+
+            for (RawVacancy r : scored) {
+                if (totalIngested.get() >= MAX_TOTAL || sourceIngested.get() >= MAX_PER_SOURCE) {
                     break;
                 }
                 try {
-                    if (hasResume && !hasSkillMatch(r, userSkillNames)) {
-                        skipped++;
-                        continue;
-                    }
                     IngestionOutcome outcome = vacancyService.ingestCollected(userId, collector.source(), r);
                     if (outcome == IngestionOutcome.CREATED) {
                         created++;
                         totalIngested.incrementAndGet();
+                        sourceIngested.incrementAndGet();
                     } else if (outcome == IngestionOutcome.UPDATED) {
                         updated++;
                     }
@@ -109,17 +134,6 @@ public class VacancyCollectorService {
         }
     }
 
-    private boolean hasSkillMatch(RawVacancy r, Set<String> userSkillNames) {
-        String text = joinNonBlank(r.title(), r.description(), r.company());
-        List<String> vacancySkills = skillExtractor.extract(text);
-        for (String s : vacancySkills) {
-            if (userSkillNames.contains(s)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     private Set<String> loadUserSkillNames(Long userId) {
         Set<String> names = new HashSet<>();
         var resumes = resumeRepository.findByUserIdOrderByCreatedAtDesc(userId);
@@ -131,16 +145,5 @@ public class VacancyCollectorService {
             }
         }
         return names;
-    }
-
-    private String joinNonBlank(String... parts) {
-        StringBuilder sb = new StringBuilder();
-        for (String p : parts) {
-            if (p != null && !p.isBlank()) {
-                if (!sb.isEmpty()) sb.append(' ');
-                sb.append(p);
-            }
-        }
-        return sb.toString();
     }
 }

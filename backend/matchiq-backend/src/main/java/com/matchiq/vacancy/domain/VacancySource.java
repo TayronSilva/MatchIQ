@@ -8,5 +8,10 @@ public enum VacancySource {
     ARBEITNOW,
     HIMALAYAS,
     WEWORKREMOTELY,
-    VAGASBR
+    VAGASBR,
+    PROGRAMATHOR,
+    GITHUBBR,
+    RSSBR,
+    JOBICY,
+    REMOTEJOBSORG
 }

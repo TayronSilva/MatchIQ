@@ -11,4 +11,8 @@ public interface JobBoardCollector {
     VacancySource source();
 
     List<RawVacancy> collect(PoliteHttpClient http) throws Exception;
+
+    default List<RawVacancy> collect(PoliteHttpClient http, List<String> keywords) throws Exception {
+        return collect(http);
+    }
 }
