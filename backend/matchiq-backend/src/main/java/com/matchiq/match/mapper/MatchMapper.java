@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -24,6 +25,7 @@ public class MatchMapper {
         response.setRationale(match.getRationale());
         response.setMatchedSkills(readList(match.getMatchedSkillsJson()));
         response.setMissingSkills(readList(match.getMissingSkillsJson()));
+        response.setScoreBreakdown(readMap(match.getScoreBreakdown()));
         response.setAlgorithmVersion(match.getAlgorithmVersion());
         response.setStatus(match.getStatus());
         response.setCreatedAt(match.getCreatedAt());
@@ -36,6 +38,14 @@ public class MatchMapper {
             return objectMapper.writeValueAsString(skills == null ? List.of() : skills);
         } catch (Exception e) {
             return "[]";
+        }
+    }
+
+    public String toJson(Map<String, Integer> map) {
+        try {
+            return objectMapper.writeValueAsString(map == null ? Map.of() : map);
+        } catch (Exception e) {
+            return "{}";
         }
     }
 
@@ -52,6 +62,18 @@ public class MatchMapper {
             });
         } catch (Exception e) {
             return List.of();
+        }
+    }
+
+    private Map<String, Integer> readMap(String json) {
+        if (json == null || json.isBlank()) {
+            return Map.of();
+        }
+        try {
+            return objectMapper.readValue(json, new tools.jackson.core.type.TypeReference<Map<String, Integer>>() {
+            });
+        } catch (Exception e) {
+            return Map.of();
         }
     }
 }

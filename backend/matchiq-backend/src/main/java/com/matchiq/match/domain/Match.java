@@ -42,6 +42,10 @@ public class Match {
 
     @Column(name = "missing_skills", columnDefinition = "TEXT")
     private String missingSkillsJson;
+
+    @Column(name = "score_breakdown", columnDefinition = "TEXT")
+    private String scoreBreakdown;
+
     @Column(name = "algorithm_version", nullable = false)
     private String algorithmVersion;
 

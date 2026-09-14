@@ -9,6 +9,8 @@ import com.matchiq.match.domain.MatchStatus;
 import com.matchiq.match.dto.MatchResponse;
 import com.matchiq.match.mapper.MatchMapper;
 import com.matchiq.match.repository.MatchRepository;
+import com.matchiq.profile.domain.Profile;
+import com.matchiq.profile.repository.ProfileRepository;
 import com.matchiq.recommendation.repository.RecommendationRepository;
 import com.matchiq.recommendation.service.RecommendationService;
 import com.matchiq.resume.domain.Resume;
@@ -29,6 +31,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -55,6 +58,9 @@ class MatchServiceTest {
 
     @Mock
     private SkillRepository skillRepository;
+
+    @Mock
+    private ProfileRepository profileRepository;
 
     @Mock
     private MatchMapper mapper;
@@ -91,6 +97,8 @@ class MatchServiceTest {
         Vacancy v = new Vacancy();
         v.setId(1L);
         v.setUserId(1L);
+        v.setTitle("Software Engineer");
+        v.setDescription("Dev role");
         return v;
     }
 
@@ -114,6 +122,24 @@ class MatchServiceTest {
         return s;
     }
 
+    private void stubMapper() {
+        when(mapper.toJson(anyList())).thenAnswer(inv -> {
+            List<String> list = inv.getArgument(0);
+            return "[\"" + String.join("\",\"", list) + "\"]";
+        });
+        when(mapper.toJson(anyMap())).thenAnswer(inv -> {
+            Map<String, Integer> map = inv.getArgument(0);
+            StringBuilder sb = new StringBuilder("{");
+            boolean first = true;
+            for (var e : map.entrySet()) {
+                if (!first) sb.append(",");
+                sb.append("\"").append(e.getKey()).append("\":").append(e.getValue());
+                first = false;
+            }
+            return sb.append("}").toString();
+        });
+    }
+
     @Test
     void calculate_shouldScore50PercentWhenHalfSkillsMatch() {
         when(resumeRepository.findByIdAndUserId(1L, 1L)).thenReturn(Optional.of(resume()));
@@ -121,28 +147,24 @@ class MatchServiceTest {
         when(resumeSkillRepository.findByResumeId(1L)).thenReturn(List.of(resumeSkill(10L), resumeSkill(11L)));
         when(vacancySkillRepository.findByVacancyId(1L)).thenReturn(List.of(vacancySkill(10L), vacancySkill(12L)));
         when(matchRepository.findByResumeIdAndVacancyId(1L, 1L)).thenReturn(Optional.empty());
+        when(profileRepository.findByUserId(1L)).thenReturn(Optional.empty());
 
         when(skillRepository.findById(10L)).thenReturn(Optional.of(skill("Java")));
         when(skillRepository.findById(12L)).thenReturn(Optional.of(skill("AWS")));
 
+        stubMapper();
+
         Match saved = new Match();
-        saved.setScore(50);
-        saved.setMatchedSkillsJson("[\"Java\"]");
-        saved.setMissingSkillsJson("[\"AWS\"]");
-        when(mapper.toJson(anyList())).thenAnswer(inv -> {
-            List<String> list = inv.getArgument(0);
-            return "[\"" + String.join("\",\"", list) + "\"]";
-        });
+        saved.setScore(20);
         when(matchRepository.save(any(Match.class))).thenReturn(saved);
 
         MatchResponse response = new MatchResponse();
-        response.setScore(50);
+        response.setScore(20);
         when(mapper.toResponse(saved)).thenReturn(response);
 
         MatchResponse result = service.calculate(1L, 1L, 1L);
 
-        assertEquals(50, result.getScore());
-        // verifica que o JSON de matched/missing foi montado com os NOMES das skills
+        assertEquals(20, result.getScore());
         verify(matchRepository).save(argThat(m ->
                 m.getMatchedSkillsJson().contains("Java") && m.getMissingSkillsJson().contains("AWS")));
     }
@@ -154,18 +176,21 @@ class MatchServiceTest {
         when(resumeSkillRepository.findByResumeId(1L)).thenReturn(List.of(resumeSkill(10L), resumeSkill(11L)));
         when(vacancySkillRepository.findByVacancyId(1L)).thenReturn(List.of(vacancySkill(10L), vacancySkill(11L)));
         when(matchRepository.findByResumeIdAndVacancyId(1L, 1L)).thenReturn(Optional.empty());
+        when(profileRepository.findByUserId(1L)).thenReturn(Optional.empty());
+
+        stubMapper();
 
         Match saved = new Match();
-        saved.setScore(100);
+        saved.setScore(40);
         when(matchRepository.save(any(Match.class))).thenReturn(saved);
 
         MatchResponse response = new MatchResponse();
-        response.setScore(100);
+        response.setScore(40);
         when(mapper.toResponse(saved)).thenReturn(response);
 
         MatchResponse result = service.calculate(1L, 1L, 1L);
 
-        assertEquals(100, result.getScore());
+        assertEquals(40, result.getScore());
     }
 
     @Test
@@ -175,6 +200,9 @@ class MatchServiceTest {
         when(resumeSkillRepository.findByResumeId(1L)).thenReturn(List.of(resumeSkill(10L)));
         when(vacancySkillRepository.findByVacancyId(1L)).thenReturn(List.of(vacancySkill(12L), vacancySkill(13L)));
         when(matchRepository.findByResumeIdAndVacancyId(1L, 1L)).thenReturn(Optional.empty());
+        when(profileRepository.findByUserId(1L)).thenReturn(Optional.empty());
+
+        stubMapper();
 
         Match saved = new Match();
         saved.setScore(0);
@@ -195,6 +223,7 @@ class MatchServiceTest {
         when(vacancyRepository.findByIdAndUserId(1L, 1L)).thenReturn(Optional.of(vacancy()));
         when(resumeSkillRepository.findByResumeId(1L)).thenReturn(List.of(resumeSkill(10L)));
         when(vacancySkillRepository.findByVacancyId(1L)).thenReturn(List.of(vacancySkill(10L)));
+        when(profileRepository.findByUserId(1L)).thenReturn(Optional.empty());
 
         Match existing = new Match();
         existing.setId(99L);
@@ -202,13 +231,15 @@ class MatchServiceTest {
         when(matchRepository.findByResumeIdAndVacancyId(1L, 1L)).thenReturn(Optional.of(existing));
         when(matchRepository.save(existing)).thenReturn(existing);
 
+        stubMapper();
+
         MatchResponse response = new MatchResponse();
-        response.setScore(100);
+        response.setScore(40);
         when(mapper.toResponse(existing)).thenReturn(response);
 
         MatchResponse result = service.calculate(1L, 1L, 1L);
 
-        assertEquals(100, result.getScore());
+        assertEquals(40, result.getScore());
         verify(matchRepository).save(existing);
     }
 

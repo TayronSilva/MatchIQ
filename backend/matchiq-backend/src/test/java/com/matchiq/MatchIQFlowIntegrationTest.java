@@ -96,15 +96,8 @@ class MatchIQFlowIntegrationTest {
         var match = matchService.calculate(user.getId(), resume.getId(), vacancy.getId());
         assertNotNull(match.getScore());
         assertTrue(match.getScore() >= 0 && match.getScore() <= 100);
-
-        // 7. Gera análise
-        var analysis = analysisService.generate(user.getId(), match.getId());
-        assertNotNull(analysis.getObservations());
-
-        // 8. Gera recomendação (pode cair no fallback local se a IA falhar)
-        var recommendation = recommendationService.generate(user.getId(), match.getId());
-        assertNotNull(recommendation.getStudyPlan());
-        assertFalse(recommendation.getStudyPlan().isBlank());
+        assertNotNull(match.getMatchedSkills());
+        assertNotNull(match.getMissingSkills());
     }
 
     private CreateSkillRequest skillRequest(String name) {

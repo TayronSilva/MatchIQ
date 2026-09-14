@@ -8,6 +8,7 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -29,6 +30,8 @@ public class MatchResponse {
     private List<String> matchedSkills;
 
     private List<String> missingSkills;
+
+    private Map<String, Integer> scoreBreakdown;
 
     private String algorithmVersion;
 
