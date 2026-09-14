@@ -469,6 +469,16 @@ select { appearance: none; background-image: none; }
 .skeleton-title { width: 50%; height: 18px; }
 .skeleton-stat { padding: 18px 14px; text-align: center; }
 
+/* ---------- Score Breakdown ---------- */
+.breakdown { display: flex; flex-direction: column; gap: 10px; }
+.breakdown-row { display: flex; align-items: center; gap: 10px; }
+.breakdown-label { width: 140px; font-size: 0.85rem; font-weight: 600; color: var(--ink-soft); flex-shrink: 0; }
+.breakdown-bar {
+  flex: 1; height: 8px; border-radius: 4px; background: var(--surface-2); overflow: hidden;
+}
+.breakdown-bar i { display: block; height: 100%; border-radius: 4px; transition: width .4s ease; }
+.breakdown-val { width: 44px; font-size: 0.82rem; font-weight: 700; color: var(--ink); text-align: right; }
+
 /* ---------- Error Boundary ---------- */
 .error-boundary {
   max-width: 480px; margin: 80px auto; text-align: center; padding: 40px 24px;

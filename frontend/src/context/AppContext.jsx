@@ -325,6 +325,24 @@ export function AppProvider({ children }) {
     } catch (e) { showError(e) }
   }
 
+  async function collectVacancies() {
+    if (!resumeId) { showError('Envie um currículo primeiro para coletar vagas relevantes.'); return null }
+    setLoading(true)
+    try {
+      const result = await api('/v1/vacancies/collect', { method: 'POST' })
+      await loadDashboard()
+      showSuccess('Coleta concluída! ' + (result.newJobs || 0) + ' novas vagas encontradas.')
+      return result
+    } catch (e) {
+      if (e.message && e.message.includes('429')) {
+        showError('Cooldown ativo. Aguarde antes de coletar novamente.')
+      } else {
+        showError(e)
+      }
+      return null
+    } finally { setLoading(false) }
+  }
+
   const value = {
     token, setToken,
     resumeId, setResumeId, resumeName, setResumeName, resumes, showUpload, setShowUpload,
@@ -338,7 +356,8 @@ export function AppProvider({ children }) {
     handleVacancyLink, handleVacancyManual, handleUpdateVacancy,
     createMatch, deleteMatch, clearMatches,
     loadTailorList, downloadTailoredPdf,
-    loadApplications, createApplication, updateApplication, deleteApplication
+    loadApplications, createApplication, updateApplication, deleteApplication,
+    collectVacancies
   }
 
   return <AppCtx.Provider value={value}>{children}</AppCtx.Provider>

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 
@@ -7,10 +7,11 @@ export default function Vagas() {
     resumeId, vacancies,
     vacancyMode, setVacancyMode, vacancyHint, vacancyNeedsInfo, vacancyId,
     handleVacancyLink, handleVacancyManual, handleUpdateVacancy,
-    createMatch, loading, error, success,
+    createMatch, collectVacancies, loading, error, success,
     api, loadDashboard, showSuccess, showError
   } = useApp()
   const navigate = useNavigate()
+  const [collecting, setCollecting] = useState(false)
 
   async function analyze(vid) {
     const m = await createMatch(vid)
@@ -24,6 +25,12 @@ export default function Vagas() {
       showSuccess('Vaga excluída.')
       loadDashboard()
     } catch (e) { showError(e) }
+  }
+
+  async function handleCollect() {
+    setCollecting(true)
+    await collectVacancies()
+    setCollecting(false)
   }
 
   const list = Object.values(vacancies)
@@ -87,6 +94,15 @@ export default function Vagas() {
             </form>
           </div>
         )}
+      </div>
+
+      <div className="card rise">
+        <div className="card-title">🌐 Buscar vagas automaticamente</div>
+        <p className="hint">O MatchIQ pesquisa em 6 portais de emprego (Remotive, RemoteOK, Arbeitnow, Himalayas, WeWorkRemotely, VagasBR) e traz vagas compatíveis com as skills do seu currículo.</p>
+        <button className="btn" onClick={handleCollect} disabled={!resumeId || loading || collecting}>
+          {collecting ? 'Buscando vagas…' : '🔍 Buscar vagas agora'}
+        </button>
+        {!resumeId && <p className="hint">Envie um currículo primeiro para buscar vagas relevantes.</p>}
       </div>
 
       <div className="section-head">

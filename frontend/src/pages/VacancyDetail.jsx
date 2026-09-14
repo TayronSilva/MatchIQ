@@ -6,6 +6,15 @@ import { useApp } from '../context/AppContext'
 import ScoreRing from '../components/ScoreRing'
 import { scoreColor, scoreLabel, buildDiagnosis, buildPlan, statusLabel, STATUS_LABELS } from '../lib/helpers'
 
+const BREAKDOWN_LABELS = {
+  competencias: 'Competências',
+  senioridade: 'Senioridade',
+  regiao: 'Região/Modalidade',
+  recencia: 'Recência',
+  preferencias: 'Preferências'
+}
+const BREAKDOWN_MAX = { competencias: 40, senioridade: 20, regiao: 20, recencia: 10, preferencias: 10 }
+
 export default function VacancyDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -51,16 +60,27 @@ export default function VacancyDetail() {
 
   function poll(matchId) {
     const start = Date.now()
+    let nullCount = 0
     pollRef.current = setInterval(async () => {
       try {
         const [analysis, recommendation] = await Promise.all([
-          api(`/v1/analyses/match/${matchId}`).catch(() => ({ status: 'PENDING' })),
-          api(`/v1/recommendations/match/${matchId}`).catch(() => ({ status: 'PENDING' }))
+          api(`/v1/analyses/match/${matchId}`).catch(() => null),
+          api(`/v1/recommendations/match/${matchId}`).catch(() => null)
         ])
-        setMatchResult(prev => prev ? ({ ...prev, analysis, recommendation }) : prev)
+        if (!analysis && !recommendation) {
+          nullCount++
+          if (nullCount >= 5) {
+            clearInterval(pollRef.current)
+            setGenStuck(true)
+            return
+          }
+        }
+        const safeA = analysis || { status: 'PENDING' }
+        const safeR = recommendation || { status: 'PENDING' }
+        setMatchResult(prev => prev ? ({ ...prev, analysis: safeA, recommendation: safeR }) : prev)
         const done = (s) => !s || s === 'COMPLETED' || s === 'FAILED'
         const timedOut = Date.now() - start > 30000
-        if ((done(analysis.status) && done(recommendation.status)) || timedOut) {
+        if ((done(safeA.status) && done(safeR.status)) || timedOut) {
           clearInterval(pollRef.current)
           if (timedOut) setGenStuck(true)
         }
@@ -108,6 +128,7 @@ export default function VacancyDetail() {
   const recommendationFailed = recommendation && recommendation.status === 'FAILED'
   const matched = match.matchedSkills || []
   const missing = match.missingSkills || []
+  const breakdown = match.scoreBreakdown || null
 
   return (
     <div className="page">
@@ -137,6 +158,28 @@ export default function VacancyDetail() {
         <div className="card ok">
           <h2>🧭 Por que esse score?</h2>
           <p className="preserve">{match.rationale}</p>
+        </div>
+      )}
+
+      {breakdown && (
+        <div className="card">
+          <h2>📊 Detalhamento do score</h2>
+          <div className="breakdown">
+            {Object.entries(BREAKDOWN_LABELS).map(([key, label]) => {
+              const val = breakdown[key] || 0
+              const max = BREAKDOWN_MAX[key]
+              const pct = Math.round((val / max) * 100)
+              return (
+                <div key={key} className="breakdown-row">
+                  <span className="breakdown-label">{label}</span>
+                  <div className="breakdown-bar">
+                    <i style={{ width: pct + '%', background: scoreColor(Math.round(pct * 0.7)) }} />
+                  </div>
+                  <span className="breakdown-val">{val}/{max}</span>
+                </div>
+              )
+            })}
+          </div>
         </div>
       )}
 
@@ -186,12 +229,12 @@ export default function VacancyDetail() {
 
       <div className="card">
         <h2>📋 Plano de estudos</h2>
-        {recommendationLoading ? (
+        {recommendationLoading && !genStuck ? (
           <p className="hint">Gerando plano com IA…</p>
         ) : recommendation && recommendation.studyPlan ? (
           <div className="md"><ReactMarkdown remarkPlugins={[remarkGfm]}>{recommendation.studyPlan}</ReactMarkdown></div>
         ) : genStuck ? (
-          <p className="preserve">{buildPlan(missing)}</p>
+          <div className="md"><ReactMarkdown remarkPlugins={[remarkGfm]}>{buildPlan(missing)}</ReactMarkdown></div>
         ) : (
           <p className="hint">Sem plano de estudos.</p>
         )}
