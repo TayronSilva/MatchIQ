@@ -18,3 +18,15 @@ backendcompleto.txt
 
 # Scratch / ad-hoc files
 scratchpad/
+
+# Environment files (NEVER commit)
+.env
+.env.*
+!.env.example
+
+# Dev configs (contain local credentials)
+backend/matchiq-backend/src/main/resources/application-dev.yml
+backend/matchiq-backend/src/main/resources/application-dev.yaml
+
+# WSL / local run artifacts
+/home/
