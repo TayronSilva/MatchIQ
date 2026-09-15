@@ -89,16 +89,21 @@ export function AppProvider({ children }) {
     } catch (err) { showError(err) }
   }
 
-  async function handleRegister(e) {
+  async function handleRegister(e, onRegistered) {
     e.preventDefault()
     const name = e.target.name.value
     const email = e.target.email.value
     const password = e.target.password.value
+    const confirmPassword = e.target.confirmPassword.value
     setError('')
+    if (password !== confirmPassword) {
+      setError('As senhas não coincidem.')
+      return
+    }
     try {
       await api('/v1/users', { method: 'POST', body: JSON.stringify({ name, email, password }) })
-      showSuccess('Conta criada! Agora é só entrar.')
-      e.target.reset()
+      showSuccess('Conta criada com sucesso! Agora é só entrar.')
+      if (onRegistered) onRegistered()
     } catch (err) { showError(err) }
   }
 

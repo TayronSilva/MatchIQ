@@ -43,7 +43,7 @@ export default function Login() {
             <button className="btn" type="submit">Entrar</button>
           </form>
         ) : (
-          <form onSubmit={handleRegister}>
+          <form onSubmit={(e) => handleRegister(e, () => setAuthTab('login'))}>
             <div className="field">
               <label htmlFor="name">Nome</label>
               <input id="name" name="name" placeholder="Seu nome" required autoComplete="name" />
@@ -55,6 +55,10 @@ export default function Login() {
             <div className="field">
               <label htmlFor="passwordR">Senha</label>
               <input id="passwordR" name="password" type="password" placeholder="Mínimo 8 caracteres" minLength={8} required autoComplete="new-password" />
+            </div>
+            <div className="field">
+              <label htmlFor="confirmPassword">Confirmar senha</label>
+              <input id="confirmPassword" name="confirmPassword" type="password" placeholder="Repita a senha" minLength={8} required autoComplete="new-password" />
             </div>
             <button className="btn" type="submit">Criar conta</button>
           </form>
